@@ -103,6 +103,7 @@ Sources/Stint/
     History/                charts, summary, session list and editor
     BreakTakeover/          the full-screen break
 Resources/     Info.plist, entitlements, Stint.sdef (AppleScript terminology), blocked-page HTML
+site/          the website (Next.js, exported as static files; see site/README.md)
 Scripts/       build-app.sh, package.sh, app icon generator
 Tests/         Swift Testing suites; UI/ drives real views in a real window
 .github/       CI and release workflows
