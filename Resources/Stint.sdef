@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+<dictionary title="Stint Terminology">
+    <suite name="Stint Suite" code="Stnt" description="Drive the Stint focus timer.">
+        <command name="begin" code="StntBegn" description="Start the timer, or resume it if paused.">
+            <cocoa class="BeginCommand"/>
+            <result type="text" description="The current phase."/>
+        </command>
+        <command name="halt" code="StntHalt" description="Stop the current session and rewind it.">
+            <cocoa class="HaltCommand"/>
+            <result type="text" description="The current phase."/>
+        </command>
+        <command name="advance" code="StntAdvn" description="Skip to the next phase.">
+            <cocoa class="AdvanceCommand"/>
+            <result type="text" description="The new phase."/>
+        </command>
+        <command name="rewind" code="StntRwnd" description="Restart the current session, or step back to the previous phase.">
+            <cocoa class="RewindCommand"/>
+            <result type="text" description="The current phase."/>
+        </command>
+        <command name="new cycle" code="StntNcyc" description="Start over at the first focus session of a cycle.">
+            <cocoa class="NewCycleCommand"/>
+            <result type="text" description="The current phase."/>
+        </command>
+        <command name="reveal" code="StntRevl" description="Show the timer window.">
+            <cocoa class="RevealCommand"/>
+        </command>
+        <command name="conceal" code="StntConc" description="Hide the timer window.">
+            <cocoa class="ConcealCommand"/>
+        </command>
+        <command name="current phase" code="StntPhas" description="The phase the timer is in.">
+            <cocoa class="CurrentPhaseCommand"/>
+            <result type="text" description="Focus, Short Break or Long Break."/>
+        </command>
+        <command name="time left" code="StntLeft" description="Time remaining in the current phase.">
+            <cocoa class="TimeLeftCommand"/>
+            <result type="integer" description="Seconds remaining."/>
+        </command>
+        <command name="session name" code="StntGnam" description="The current session's name.">
+            <cocoa class="SessionNameCommand"/>
+            <result type="text" description="The name, or an empty string."/>
+        </command>
+        <command name="name session" code="StntSnam" description="Name the current session.">
+            <cocoa class="NameSessionCommand"/>
+            <direct-parameter type="text" description="The new name."/>
+            <result type="text" description="The name that was set."/>
+        </command>
+    </suite>
+</dictionary>
