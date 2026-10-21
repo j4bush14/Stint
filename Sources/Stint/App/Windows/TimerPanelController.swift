@@ -101,8 +101,19 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
             frame.origin.x = min(max(frame.minX, screen.minX + 8), screen.maxX - frame.width - 8)
             frame.origin.y = max(frame.minY, screen.minY + 8)
         }
-        panel.setFrame(frame, display: true, animate: true)
-        updateCornerRadius()
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            panel.setFrame(frame, display: true)
+            updateCornerRadius()
+            return
+        }
+        // An eased resize; the content follows frame by frame, and crossing into another
+        // layout animates there (see TimerPanelView).
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.35
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.2, 0.8, 0.2, 1)
+            context.allowsImplicitAnimation = true
+            panel.animator().setFrame(frame, display: true)
+        }
     }
 
     func windowDidResize(_ notification: Notification) {

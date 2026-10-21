@@ -32,12 +32,17 @@ struct TimerPanelView: View {
     @EnvironmentObject private var settings: AppSettings
     @State private var isEditingTitle = false
     @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Pieces every layout shares (the face, controls, phase, tag, corner buttons) glide
+    /// between their places when the layout changes, instead of popping.
+    @Namespace private var morph
 
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
+            let layout = Self.layout(for: size)
             Group {
-                switch Self.layout(for: size) {
+                switch layout {
                 case .mini: mini(size)
                 case .compact: compact(size)
                 case .wide: wide(size)
@@ -45,6 +50,8 @@ struct TimerPanelView: View {
                 }
             }
             .frame(width: size.width, height: size.height)
+            // Crossing into another layout animates: shared pieces move, the rest cross-fades.
+            .animation(reduceMotion ? nil : .smooth(duration: 0.45), value: layout)
         }
         // While a time is being picked, a click anywhere outside the picker sets it.
         .background {
@@ -88,6 +95,12 @@ struct TimerPanelView: View {
         PanelCornerButtons(scale: scale, isVisible: showsButtons, menu: menu)
             .padding(inset)
             .inactiveWhileEditingTime()
+            .matchedGeometryEffect(id: Part.cornerButtons, in: morph)
+    }
+
+    /// The pieces that move between layouts.
+    private enum Part: Hashable {
+        case face, controls, phase, tag, cornerButtons
     }
 
     /// The phase, in a row as tall as the corner buttons and kept clear of them.
@@ -96,6 +109,7 @@ struct TimerPanelView: View {
             .frame(maxWidth: .infinity)
             .frame(height: panelButtonSize * scale)
             .padding(.horizontal, (panelButtonSize + 8) * scale)
+            .matchedGeometryEffect(id: Part.phase, in: morph)
     }
 
     // MARK: Layouts
@@ -111,12 +125,15 @@ struct TimerPanelView: View {
             phaseRow(scale: chrome)
             Spacer(minLength: 8)
             ClockFace(size: diameter, isEditingTitle: $isEditingTitle)
+                .matchedGeometryEffect(id: Part.face, in: morph)
             Spacer(minLength: 8)
             TransportControls(scale: scale)
                 .inactiveWhileEditingTime()
+                .matchedGeometryEffect(id: Part.controls, in: morph)
                 .padding(.bottom, 12 * scale)
             TagPicker(scale: chrome)
                 .inactiveWhileEditingTime()
+                .matchedGeometryEffect(id: Part.tag, in: morph)
         }
         .padding(padding)
         .overlay(alignment: .top) { cornerButtons(scale: chrome, inset: padding) }
@@ -134,8 +151,10 @@ struct TimerPanelView: View {
             >= diameter / 2 + panelButtonSize / 2 + 4
         return VStack(spacing: 12) {
             ClockFace(size: diameter, showsTitle: diameter >= 150, isEditingTitle: $isEditingTitle)
+                .matchedGeometryEffect(id: Part.face, in: morph)
             TransportControls(scale: controlScale(for: diameter))
                 .inactiveWhileEditingTime()
+                .matchedGeometryEffect(id: Part.controls, in: morph)
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -152,14 +171,17 @@ struct TimerPanelView: View {
         let scale = min(controlScale(for: diameter), (size.width - diameter - 2 * padding - 20) / 190)
         return HStack(spacing: 20) {
             ClockFace(size: diameter, isEditingTitle: $isEditingTitle)
+                .matchedGeometryEffect(id: Part.face, in: morph)
             VStack(spacing: 10) {
                 phaseRow(scale: chrome)
                 Spacer(minLength: 0)
                 TransportControls(scale: scale)
                     .inactiveWhileEditingTime()
+                    .matchedGeometryEffect(id: Part.controls, in: morph)
                 Spacer(minLength: 0)
                 TagPicker(scale: chrome)
                     .inactiveWhileEditingTime()
+                    .matchedGeometryEffect(id: Part.tag, in: morph)
             }
             .frame(minWidth: 0, maxWidth: .infinity)
         }
@@ -190,6 +212,7 @@ struct TimerPanelView: View {
             }
             ProgressRing(progress: timer.progress, lineWidth: 3.5)
                 .frame(width: ringSize, height: ringSize)
+                .matchedGeometryEffect(id: Part.face, in: morph)
 
             VStack(alignment: .leading, spacing: 0) {
                 if timer.isEditingTime {
@@ -209,6 +232,7 @@ struct TimerPanelView: View {
 
             TransportControls(scale: buttonScale, playOnly: !showsAllControls)
                 .inactiveWhileEditingTime()
+                .matchedGeometryEffect(id: Part.controls, in: morph)
 
             PanelMenuButton(menu: menu, scale: windowButtonScale, isVisible: showsButtons)
                 .inactiveWhileEditingTime()
