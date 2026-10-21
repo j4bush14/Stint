@@ -260,7 +260,7 @@ extension UITests.TimerPanel {
         #expect(ui.click("picker.preset.\(minutes)"))
         ui.press(.return)
         #expect(ui.timer.remaining == TimeInterval(minutes * 60))
-        #expect(ui.value("panel.time") == Fmt.clock(TimeInterval(minutes * 60)))
+        #expect(ui.value("panel.time") == TimeFormat.clock(TimeInterval(minutes * 60)))
     }
 
     @Test("Pressing Space while naming a session types a space, not Start")

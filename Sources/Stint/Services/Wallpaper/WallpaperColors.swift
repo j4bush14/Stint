@@ -28,8 +28,7 @@ final class WallpaperColors: ObservableObject {
             .merge(with: NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification))
             .sink { [weak self] _ in self?.refresh() }
             .store(in: &cancellables)
-        settings.objectWillChange
-            .receive(on: RunLoop.main) // after the change, so the new theme is read
+        settings.didChange
             .sink { [weak self] in self?.refresh() }
             .store(in: &cancellables)
     }

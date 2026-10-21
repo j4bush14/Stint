@@ -89,7 +89,7 @@ struct HistoryView: View {
         let breaks = filtered.filter { $0.phase.isBreak && $0.isCompleted }.count
         return HStack(spacing: 12) {
             statTile("Focus Sessions", "\(focusSessions.count)")
-            statTile("Total Time", Fmt.hoursMinutes(focused))
+            statTile("Total Time", TimeFormat.hoursMinutes(focused))
             statTile("Breaks", "\(breaks)")
             statTile("Pauses", "\(interruptions)")
         }

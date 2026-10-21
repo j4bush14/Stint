@@ -23,7 +23,7 @@ struct SessionRow: View {
                 Label("\(session.interruptions.count)", systemImage: "pause.circle")
                     .font(.caption).foregroundStyle(.secondary)
             }
-            Text(Fmt.hoursMinutes(session.focusedTime)).monospacedDigit()
+            Text(TimeFormat.hoursMinutes(session.focusedTime)).monospacedDigit()
         }
         .padding(.vertical, 6)
         .padding(.horizontal, 10)
@@ -53,8 +53,8 @@ struct SessionDetailView: View {
                 LabeledContent("Started", value: session.startedAt.formatted(date: .abbreviated, time: .standard))
                 LabeledContent("Completed",
                                value: session.completedAt?.formatted(date: .omitted, time: .standard) ?? "Not Completed")
-                LabeledContent("Duration", value: Fmt.hoursMinutes(session.focusedTime))
-                LabeledContent("Duration With Interruptions", value: Fmt.hoursMinutes(session.durationWithInterruptions))
+                LabeledContent("Duration", value: TimeFormat.hoursMinutes(session.focusedTime))
+                LabeledContent("Duration With Interruptions", value: TimeFormat.hoursMinutes(session.durationWithInterruptions))
                 LabeledContent("Interruptions", value: "\(session.interruptions.count)")
             }
             .formStyle(.grouped)

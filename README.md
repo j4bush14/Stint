@@ -48,7 +48,11 @@ make install   # build and copy Stint.app to /Applications
 | `make app` | Build `build/Stint.app` |
 | `make run` | Build and launch |
 | `make install` / `make uninstall` | Copy to / remove from `/Applications` (your data is kept) |
-| `make test` | Run the unit tests |
+| `make test` | Run every test, unit and UI (about two minutes) |
+| `make test-unit` | Run the fast tests only (no windows, about a second) |
+| `make test-ui` | Run the UI tests only; they open real windows |
+| `make open` | Open the package in Xcode |
+| `make logs` | Stream the running app's log messages |
 | `make package` | Build `dist/Stint-<version>.zip` and `.dmg` plus checksums |
 | `make clean` | Remove build products |
 
@@ -75,17 +79,29 @@ The workflows run on `macos-latest` by default. Set the `MACOS_RUNNER` repositor
 
 ```
 Sources/Stint/
-  App/         composition root (AppEnvironment, AppDelegate), app actions, menu bar item,
-               the floating panel's controller, other windows, main menu,
-               AppleScript and stint:// commands
-  Domain/      FocusTimer, sessions and tags, settings, history queries (Foundation only)
-  Services/    notifications, app/website blocking, hotkeys, calendar, wallpaper colors,
-               the on-device coach, file dialogs
-  UI/
-    DesignSystem/  theme, glass button style, hover highlight, scroll wheel, test targets
-    TimerPanel/    adaptive layouts, clock faces, split-flap digits, time picker, chrome
-    Settings/      the settings window, one file per pane, shared rows and switches
-    History/       charts, summary, session list and editor
+  App/                    builds the app and wires it together
+    AppDelegate.swift       entry point; creates services and connects timer events
+    AppEnvironment.swift    the composition root every view and service gets its objects from
+    AppActions.swift        app-level requests views can make (show Settings, resize the panel…)
+    Commands/               AppCommand (links, shortcuts, notifications, AppleScript) and the AppleScript classes
+    MenuBar/                the menu bar item: what it shows, how it's drawn and animated, its menu
+    Windows/                the floating panel, Settings/History/break windows, the main menu
+  Domain/                 plain logic, Foundation only
+    Timer/                  FocusTimer (the state machine) and Phase
+    Sessions/               Session, Tag, SessionStore (JSON on disk), HistoryQuery
+    Settings/               AppSettings, the @Pref wrapper, the choices behind each option
+    TimeFormat.swift        how times are written everywhere
+  Services/               talks to the system
+    Blocking/  Coach/  Hotkeys/  Notifications/  System/  Wallpaper/
+  UI/                     SwiftUI views
+    DesignSystem/           colors, ThemeModel, button styles, scroll wheel, test targets
+    TimerPanel/             TimerPanelView and its layouts, plus:
+      Faces/                  ClockFace, the split-flap, rings, dials and pips
+      Controls/               transport buttons, time picker and display, title field, tag picker
+      Chrome/                 corner buttons, phase label, the ⋯ menu
+    Settings/               SettingsView, shared rows and switches; Panes/ has one file per pane
+    History/                charts, summary, session list and editor
+    BreakTakeover/          the full-screen break
 Resources/     Info.plist, entitlements, Stint.sdef (AppleScript terminology), blocked-page HTML
 Scripts/       build-app.sh, package.sh, app icon generator
 Tests/         Swift Testing suites; UI/ drives real views in a real window
@@ -94,12 +110,19 @@ Tests/         Swift Testing suites; UI/ drives real views in a real window
 
 Dependencies point one way: `UI` and `Services` use `Domain`; `App` builds everything and wires it together. Nothing reaches back up.
 
+### Common changes
+
+- **A new command** (something a link, shortcut or script can do): add a case to `AppCommand`, carry it out in `perform(in:)`, and map it from whichever source should trigger it (`init(url:)`, a hotkey, an AppleScript class with an entry in `Stint.sdef`). Tests in `RulesAndParsingTests` show the pattern.
+- **A new setting:** add an `@Pref("area.name")` property to `AppSettings` (multiple-choice options go in `SettingOptions.swift`), then a `SettingToggle`, `StepperRow` or `Picker` in its pane. Services that react to it subscribe to `settings.didChange`.
+- **A new clock face:** add a `ClockStyle` case, draw it in `ClockFace`, and give it a menu bar shape in `MenuBarContent`.
+
 ### Design notes
 
 - **Composition root.** `AppEnvironment` owns the app's objects (settings, store, timer, theme, wallpaper colors, calendar) and its replaceable services. `AppDelegate` builds the live one; tests build one from throwaway preferences and a temporary folder. There are no singletons: views read their dependencies from the SwiftUI environment, and services get theirs through their initializers. The one static, `AppEnvironment.scripting`, exists because Cocoa Scripting creates AppleScript command objects itself.
+- **Commands.** `stint://` links, global shortcuts, notification buttons and AppleScript all turn their input into an `AppCommand`, and `AppCommand.perform(in:)` is the one place commands are carried out.
 - **App actions.** Views ask for app-level things (show Settings at a pane, resize the panel, open History) through `AppActions`, a struct of closures in the environment, so the UI never knows about windows or the delegate. Tests record them.
 - **Seams.** The on-device model (`FocusCoach`) and open/save panels (`FileDialogs`) are protocols, so tests use fakes and the UI can be exercised without Apple Intelligence or a modal dialog.
-- **Logic out of views.** `FocusTimer` holds the timer state machine and `HistoryQuery` the History window's periods, filtering, titles and chart buckets. Both are plain Swift with injected clocks and calendars, tested directly.
+- **Logic out of views.** `FocusTimer` holds the timer state machine, `HistoryQuery` the History window's periods, filtering, titles and chart buckets, and `MenuBarContent` what the menu bar item shows. All are plain Swift, tested directly.
 - **Settings.** `AppSettings` persists through a small `@Pref` property wrapper that publishes changes, which `@AppStorage` doesn't do outside views.
 - **Panel glass.** The panel is an `NSGlassEffectView`. Its color is a wash inside the content rather than the view's `tintColor`, because `tintColor` disappears whenever the window isn't key. Panel buttons use `PanelGlassButtonStyle` rather than the system glass styles for the same reason: a floating panel shouldn't restyle itself when focus moves.
 - **Layouts.** `TimerPanelView.layout(for:)` picks a layout from the window size. Each layout budgets its space explicitly so controls can't overlap at any size. Right-click and the ⋯ button share one menu in every layout.

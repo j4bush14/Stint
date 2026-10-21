@@ -45,33 +45,73 @@ struct WebBlockingRuleTests {
 }
 
 @Suite("stint:// links")
-struct URLCommandTests {
+struct AppCommandLinkTests {
     @Test("Parses simple commands", arguments: [
-        ("stint://start", URLCommand.start), ("stint://pause", .pause), ("stint://toggle", .toggle),
+        ("stint://start", AppCommand.start), ("stint://pause", .pause), ("stint://toggle", .toggle),
         ("stint://stop", .stop), ("stint://skip", .skip), ("stint://rewind", .rewind),
-        ("stint://new-cycle", .newCycle), ("stint://show", .show), ("stint://hide", .hide),
-        ("stint://history", .history), ("stint://set-time", .setTime), ("STINT://Start", .start),
+        ("stint://new-cycle", .newCycle), ("stint://show", .showPanel), ("stint://hide", .hidePanel),
+        ("stint://history", .showHistory), ("stint://set-time", .editTime), ("STINT://Start", .start),
     ])
-    func simple(link: String, command: URLCommand) {
-        #expect(URLCommand(URL(string: link)!) == command)
+    func simple(link: String, command: AppCommand) {
+        #expect(AppCommand(url: URL(string: link)!) == command)
     }
 
     @Test("Opens settings, optionally at a pane")
     func settings() {
-        #expect(URLCommand(URL(string: "stint://settings")!) == .settings(nil))
-        #expect(URLCommand(URL(string: "stint://settings/appearance")!) == .settings(.appearance))
-        #expect(URLCommand(URL(string: "stint://settings/nonsense")!) == .settings(nil))
+        #expect(AppCommand(url: URL(string: "stint://settings")!) == .showSettings(nil))
+        #expect(AppCommand(url: URL(string: "stint://settings/appearance")!) == .showSettings(.appearance))
+        #expect(AppCommand(url: URL(string: "stint://settings/nonsense")!) == .showSettings(nil))
     }
 
     @Test("Names the session from the text parameter")
     func name() {
-        #expect(URLCommand(URL(string: "stint://name?text=Write%20chapter%203")!) == .name("Write chapter 3"))
-        #expect(URLCommand(URL(string: "stint://name")!) == .name(""))
+        #expect(AppCommand(url: URL(string: "stint://name?text=Write%20chapter%203")!) == .rename("Write chapter 3"))
+        #expect(AppCommand(url: URL(string: "stint://name")!) == .rename(""))
     }
 
     @Test("Rejects other schemes and unknown commands", arguments: ["https://start", "stint://launch-rockets"])
     func rejects(link: String) {
-        #expect(URLCommand(URL(string: link)!) == nil)
+        #expect(AppCommand(url: URL(string: link)!) == nil)
+    }
+}
+
+@Suite("App commands")
+@MainActor
+struct AppCommandTests {
+    let env = TestEnvironment()
+
+    @Test("Shortcuts and notification buttons map to commands")
+    func sources() {
+        #expect(HotkeyCommand.allCases.map(AppCommand.init) == [.toggle, .skip, .newCycle, .togglePanel])
+        #expect([NotificationAction.startNext, .skip, .open].map(AppCommand.init) == [.start, .skip, .showPanel])
+    }
+
+    @Test("Timer commands drive the timer")
+    func timer() {
+        let app = env.makeApp()
+        AppCommand.start.perform(in: app)
+        #expect(app.timer.isRunning)
+        AppCommand.pause.perform(in: app)
+        #expect(!app.timer.isRunning)
+        AppCommand.rename("Essay").perform(in: app)
+        #expect(app.timer.title == "Essay")
+        AppCommand.skip.perform(in: app)
+        #expect(app.timer.phase == .shortBreak)
+        AppCommand.newCycle.perform(in: app)
+        #expect(app.timer.phase == .focus && app.timer.completedFocus == 0)
+    }
+
+    @Test("Window commands reach the app, and editing the time shows the panel first")
+    func windows() {
+        let app = env.makeApp()
+        final class Log { var entries: [String] = [] }
+        let log = Log()
+        app.actions.showPanel = { log.entries.append("show") }
+        app.actions.togglePanel = { log.entries.append("toggle") }
+        app.actions.showSettings = { log.entries.append("settings:\($0?.rawValue ?? "-")") }
+        for command in [AppCommand.togglePanel, .showSettings(.tags), .editTime] { command.perform(in: app) }
+        #expect(log.entries == ["toggle", "settings:tags", "show"])
+        #expect(app.timer.isEditingTime)
     }
 }
 
@@ -79,17 +119,17 @@ struct URLCommandTests {
 struct FormattingTests {
     @Test("Clock format", arguments: [(0.0, "00:00"), (59.2, "01:00"), (1500, "25:00"), (3661, "1:01:01"), (-5, "00:00")])
     func clock(seconds: Double, text: String) {
-        #expect(Fmt.clock(seconds) == text)
+        #expect(TimeFormat.clock(seconds) == text)
     }
 
     @Test("Flip clock halves", arguments: [(1500.0, "25", "00"), (59.2, "01", "00"), (5400, "1", "30")])
     func clockParts(seconds: Double, leading: String, trailing: String) {
-        #expect(Fmt.clockParts(seconds) == (leading, trailing))
+        #expect(TimeFormat.clockParts(seconds) == (leading, trailing))
     }
 
     @Test("Hours and minutes", arguments: [(59.0, "0 min"), (1500, "25 min"), (5400, "1 hr 30 min")])
     func hoursMinutes(seconds: Double, text: String) {
-        #expect(Fmt.hoursMinutes(seconds) == text)
+        #expect(TimeFormat.hoursMinutes(seconds) == text)
     }
 }
 

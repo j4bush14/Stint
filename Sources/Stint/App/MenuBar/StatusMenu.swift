@@ -68,11 +68,11 @@ enum StatusMenu {
     /// Where the timer is, e.g. "Focus · 2 of 4" over "12:30 left · Essay · Deep Work".
     private static func header(timer: FocusTimer, store: SessionStore) -> NSMenuItem {
         let title = timer.phase == .focus
-            ? "Focus · \(min(timer.completedFocus + 1, timer.cycle)) of \(timer.cycle)"
+            ? "Focus · \(timer.focusNumber) of \(timer.cycle)"
             : timer.phase.title
         let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
         item.isEnabled = false
-        var details = ["\(Fmt.clock(timer.remaining)) left"]
+        var details = ["\(TimeFormat.clock(timer.remaining)) left"]
         if timer.hasStarted && !timer.isRunning { details.append("paused") }
         if !timer.title.isEmpty { details.append(timer.title) }
         if let tag = store.tag(for: timer.selectedTagID) { details.append(tag.title) }

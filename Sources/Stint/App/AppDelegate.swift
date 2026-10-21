@@ -36,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         app.actions = makeActions()
 
         NSApp.mainMenu = MainMenu.make(settingsTarget: self, settingsAction: #selector(openSettings))
-        settings.objectWillChange.receive(on: RunLoop.main)
+        settings.didChange
             .sink { [weak self] in self?.applyAppearance() }
             .store(in: &cancellables)
         applyAppearance()
@@ -57,7 +57,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
-            if let command = URLCommand(url) { command.perform(in: app) } else { panel.show() }
+            (AppCommand(url: url) ?? .showPanel).perform(in: app)
         }
     }
 
@@ -88,11 +88,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func startServices() {
         notifier = Notifier(settings: settings, store: app.store, coach: app.coach) { [unowned self] action in
-            switch action {
-            case .startNext: timer.start()
-            case .skip: timer.skip()
-            case .open: panel.show()
-            }
+            AppCommand(action).perform(in: app)
         }
         notifier.start()
         appBlocker = AppBlocker(settings: settings, timer: timer) { [unowned self] name in
@@ -101,13 +97,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appBlocker.start()
         webBlocker = WebBlocker(settings: settings, timer: timer, dataDirectory: SessionStore.defaultDirectory)
         webBlocker.start()
-        hotkeys = Hotkeys(settings: settings) { [unowned self] command in
-            switch command {
-            case .toggleTimer: timer.toggle()
-            case .skip: timer.skip()
-            case .resetCycle: timer.resetCycle()
-            case .togglePanel: panel.toggle()
-            }
+        hotkeys = Hotkeys(settings: settings) { [unowned self] hotkey in
+            AppCommand(hotkey).perform(in: app)
         }
         hotkeys.start()
         if settings.syncWithCalendar { app.calendar.reloadCalendars() }

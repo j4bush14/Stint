@@ -7,6 +7,14 @@ protocol PreferenceStore: ObservableObject where ObjectWillChangePublisher == Ob
     var defaults: UserDefaults { get }
 }
 
+extension PreferenceStore {
+    /// Fires after any setting changes, so subscribers read the new values. (`objectWillChange`
+    /// fires before the change; this delivers it on the next pass of the main run loop.)
+    var didChange: AnyPublisher<Void, Never> {
+        objectWillChange.receive(on: RunLoop.main).eraseToAnyPublisher()
+    }
+}
+
 /// A UserDefaults-backed property for `PreferenceStore` classes that publishes
 /// `objectWillChange` on every write (unlike `@AppStorage`, which only works in views).
 @propertyWrapper

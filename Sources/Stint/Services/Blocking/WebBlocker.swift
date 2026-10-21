@@ -37,8 +37,7 @@ final class WebBlocker {
     }
 
     func start() {
-        Publishers.Merge(timer.objectWillChange, settings.objectWillChange)
-            .receive(on: RunLoop.main) // after the change
+        Publishers.Merge(timer.objectWillChange.receive(on: RunLoop.main), settings.didChange)
             .sink { [weak self] in self?.updatePolling() }
             .store(in: &cancellables)
     }

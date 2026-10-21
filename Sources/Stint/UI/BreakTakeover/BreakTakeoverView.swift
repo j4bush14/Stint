@@ -13,7 +13,7 @@ struct BreakTakeoverView: View {
             VStack(spacing: 14) {
                 Text(timer.phase.title)
                     .font(.system(size: 28, weight: .semibold, design: .rounded))
-                Text(Fmt.clock(timer.remaining))
+                Text(TimeFormat.clock(timer.remaining))
                     .font(.system(size: 120, weight: .light, design: .rounded).monospacedDigit())
                     .contentTransition(.numericText(countsDown: true))
                     .animation(.smooth, value: Int(timer.remaining.rounded(.up)))

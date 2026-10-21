@@ -93,6 +93,9 @@ final class FocusTimer: ObservableObject {
 
     var cycle: Int { max(1, activePreset?.cycle ?? settings.cycle) }
 
+    /// Which focus session of the cycle this is (or comes next), from 1: "2 of 4".
+    var focusNumber: Int { min(completedFocus + 1, cycle) }
+
     func duration(of phase: Phase) -> TimeInterval {
         let minutes = switch phase {
         case .focus: activePreset?.focusMinutes ?? settings.focusMinutes

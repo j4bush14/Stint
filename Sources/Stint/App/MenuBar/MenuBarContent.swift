@@ -60,7 +60,7 @@ struct MenuBarContent: Equatable {
             }
         }
         if showsTime {
-            time = Fmt.clock(remaining)
+            time = TimeFormat.clock(remaining)
             usesFlipTiles = clock == .flip
             if showsTitle, !title.isEmpty { self.title = title }
         }
@@ -71,6 +71,6 @@ struct MenuBarContent: Equatable {
     /// What VoiceOver reads, e.g. "Focus, paused, 12:30 left".
     static func accessibilityLabel(phase: Phase, isRunning: Bool, hasStarted: Bool, remaining: TimeInterval) -> String {
         let state = isRunning ? nil : hasStarted ? "paused" : "ready"
-        return [phase.title, state, "\(Fmt.clock(remaining)) left"].compactMap { $0 }.joined(separator: ", ")
+        return [phase.title, state, "\(TimeFormat.clock(remaining)) left"].compactMap { $0 }.joined(separator: ", ")
     }
 }

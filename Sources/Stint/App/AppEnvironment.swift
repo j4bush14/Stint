@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 /// The composition root: builds the app's models and services once and hands them to

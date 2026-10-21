@@ -87,7 +87,7 @@ struct TimerPanelView: View {
     private func cornerButtons(scale: CGFloat, inset: CGFloat) -> some View {
         PanelCornerButtons(scale: scale, isVisible: showsButtons, menu: menu)
             .padding(inset)
-            .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+            .inactiveWhileEditingTime()
     }
 
     /// The phase, in a row as tall as the corner buttons and kept clear of them.
@@ -113,10 +113,10 @@ struct TimerPanelView: View {
             ClockFace(size: diameter, isEditingTitle: $isEditingTitle)
             Spacer(minLength: 8)
             TransportControls(scale: scale)
-                .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                .inactiveWhileEditingTime()
                 .padding(.bottom, 12 * scale)
             TagPicker(scale: chrome)
-                .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                .inactiveWhileEditingTime()
         }
         .padding(padding)
         .overlay(alignment: .top) { cornerButtons(scale: chrome, inset: padding) }
@@ -135,7 +135,7 @@ struct TimerPanelView: View {
         return VStack(spacing: 12) {
             ClockFace(size: diameter, showsTitle: diameter >= 150, isEditingTitle: $isEditingTitle)
             TransportControls(scale: controlScale(for: diameter))
-                .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                .inactiveWhileEditingTime()
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -156,10 +156,10 @@ struct TimerPanelView: View {
                 phaseRow(scale: chrome)
                 Spacer(minLength: 0)
                 TransportControls(scale: scale)
-                    .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                    .inactiveWhileEditingTime()
                 Spacer(minLength: 0)
                 TagPicker(scale: chrome)
-                    .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                    .inactiveWhileEditingTime()
             }
             .frame(minWidth: 0, maxWidth: .infinity)
         }
@@ -185,7 +185,7 @@ struct TimerPanelView: View {
         return HStack(spacing: 12) {
             if showsHide {
                 PanelHideButton(scale: windowButtonScale, isVisible: showsButtons)
-                    .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                    .inactiveWhileEditingTime()
                     .padding(.trailing, -2)
             }
             ProgressRing(progress: timer.progress, lineWidth: 3.5)
@@ -208,25 +208,12 @@ struct TimerPanelView: View {
             .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
 
             TransportControls(scale: buttonScale, playOnly: !showsAllControls)
-                .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                .inactiveWhileEditingTime()
 
             PanelMenuButton(menu: menu, scale: windowButtonScale, isVisible: showsButtons)
-                .modifier(InactiveWhileEditing(isEditing: timer.isEditingTime))
+                .inactiveWhileEditingTime()
                 .padding(.leading, -2)
         }
         .padding(.horizontal, 10)
-    }
-}
-
-/// Dims a control and lets clicks fall through to the "click outside to set" area while
-/// the time picker is open, so nothing else (like Play) can happen until editing ends.
-struct InactiveWhileEditing: ViewModifier {
-    let isEditing: Bool
-
-    func body(content: Content) -> some View {
-        content
-            .opacity(isEditing ? 0.35 : 1)
-            .allowsHitTesting(!isEditing)
-            .animation(.smooth(duration: 0.2), value: isEditing)
     }
 }
