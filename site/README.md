@@ -8,9 +8,9 @@ npm run dev     # http://localhost:3000
 npm run build   # writes the static site to out/
 ```
 
-## Before publishing
+## Links
 
-Set `repositoryUrl` in [`site.config.ts`](site.config.ts) to the real GitHub repository. Every Download, Source and Releases link is built from it, and Download points at the latest release.
+Every Download, Source and Releases link is built from `repositoryUrl` in [`site.config.ts`](site.config.ts); Download points at the repository's latest release.
 
 ## Layout
 

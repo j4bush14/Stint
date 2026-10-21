@@ -39,7 +39,7 @@ xattr -dr com.apple.quarantine /Applications/Stint.app
 You need Xcode 27 (Swift 6.4).
 
 ```bash
-git clone <this repository> && cd stint
+git clone https://github.com/j4bush14/Stint.git && cd Stint
 make install   # build and copy Stint.app to /Applications
 ```
 
