@@ -1,38 +1,57 @@
 name: Release
 
-# Push a tag like v2.1.0 to build, package and publish a GitHub Release.
+# Builds Stint.app, packages it as a .dmg and a .zip, and publishes a GitHub Release.
+# Start it either way:
+#   - push a version tag:   git tag v2.1.0 && git push origin v2.1.0
+#   - or Actions › Release › Run workflow, and type the version (the tag is created for you)
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 2.1.0"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
   release:
-    runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    # Stint needs the macOS 27 SDK: GitHub's `xcode-27` image (or your own Mac via MACOS_RUNNER).
+    runs-on: ${{ vars.MACOS_RUNNER || 'xcode-27' }}
     # Optional Developer ID signing and notarization. Without the secrets the release is
     # ad-hoc signed and users approve it once in System Settings › Privacy & Security.
     # Secrets are given only to the steps that use them, never to the whole job.
     steps:
-      # Third-party actions are pinned to a commit so a moved tag can't change what runs.
+      # Pinned to a commit so a moved tag can't change what runs.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
-      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
-        with:
-          xcode-version: latest-stable
+      - name: Toolchain
+        run: xcodebuild -version && swift --version
 
-      - name: Set version from tag
+      - name: Choose the version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }} # to check the release doesn't exist yet
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${INPUT_VERSION:-${GITHUB_REF_NAME#v}}"
+          VERSION="${VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::\"$VERSION\" isn't a version like 2.1 or 2.1.0."; exit 1
+          fi
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "::error::Release v$VERSION already exists."; exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Resources/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" Resources/Info.plist
 
-      # Before any credentials exist on the machine.
+      # Before any credentials exist on the machine. The UI tests already ran in CI.
       - name: Test
-        run: make test
+        run: make test-unit
 
       - name: Import signing certificate
         env:
@@ -44,6 +63,7 @@ jobs:
           # the job ends so nothing outlives it on a self-hosted Mac.
           SIGNING_KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
           echo "SIGNING_KEYCHAIN=$SIGNING_KEYCHAIN" >> "$GITHUB_ENV"
+          echo "SIGNED=1" >> "$GITHUB_ENV"
           KEYCHAIN_PASSWORD="$(uuidgen)"
           CERTIFICATE="$RUNNER_TEMP/certificate.p12"
           echo "$MACOS_CERTIFICATE" | base64 --decode > "$CERTIFICATE"
@@ -70,7 +90,7 @@ jobs:
           echo "NOTARY_PROFILE=stint-notary" >> "$GITHUB_ENV"
           echo "NOTARY_KEYCHAIN=$SIGNING_KEYCHAIN" >> "$GITHUB_ENV"
 
-      - name: Package
+      - name: Build the .dmg and .zip
         env:
           CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}            # "Developer ID Application: …"
         run: make package
@@ -80,7 +100,30 @@ jobs:
         run: |
           if [[ -f "${SIGNING_KEYCHAIN:-}" ]]; then security delete-keychain "$SIGNING_KEYCHAIN"; fi
 
-      - name: Publish release
+      # Also kept with the run, so a build can be downloaded even if publishing fails.
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Stint-${{ env.VERSION }}
+          path: dist/*
+
+      - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "Stint ${GITHUB_REF_NAME#v}" --generate-notes
+        run: |
+          if [[ -n "${SIGNED:-}" ]]; then
+            OPENING="Open the disk image and drag **Stint** into **Applications**."
+          else
+            OPENING="Open the disk image and drag **Stint** into **Applications**. This build isn't notarized, so the first time you open it macOS will stop it: open **System Settings › Privacy & Security** and click **Open Anyway** next to Stint."
+          fi
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          ## Install
+
+          1. Download **Stint-$VERSION.dmg** below.
+          2. $OPENING
+          3. Stint appears in your menu bar.
+
+          Requires macOS 27 on Apple silicon. Checksums are in **SHA256SUMS.txt**.
+          EOF
+          # --target creates the tag when the release is started from the Actions tab.
+          gh release create "v$VERSION" dist/* --target "$GITHUB_SHA" --title "Stint $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md" --generate-notes
