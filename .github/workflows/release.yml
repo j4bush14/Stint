@@ -11,19 +11,16 @@ permissions:
 jobs:
   release:
     runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
-    env:
-      # Optional Developer ID signing + notarization. Without these secrets the release is
-      # ad-hoc signed and users approve it once in System Settings › Privacy & Security.
-      MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}            # base64 .p12
-      MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-      CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}            # "Developer ID Application: …"
-      NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
-      NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
-      NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}                # app-specific password
+    # Optional Developer ID signing and notarization. Without the secrets the release is
+    # ad-hoc signed and users approve it once in System Settings › Privacy & Security.
+    # Secrets are given only to the steps that use them, never to the whole job.
     steps:
-      - uses: actions/checkout@v4
+      # Third-party actions are pinned to a commit so a moved tag can't change what runs.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
           xcode-version: latest-stable
 
@@ -33,32 +30,55 @@ jobs:
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" Resources/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $GITHUB_RUN_NUMBER" Resources/Info.plist
 
-      - name: Import signing certificate
-        if: env.MACOS_CERTIFICATE != ''
-        run: |
-          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
-          KEYCHAIN_PASSWORD="$(uuidgen)"
-          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security import "$RUNNER_TEMP/certificate.p12" -P "$MACOS_CERTIFICATE_PASSWORD" \
-            -A -t cert -f pkcs12 -k "$KEYCHAIN"
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
-          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | tr -d '"')
-
-      - name: Store notarization credentials
-        if: env.NOTARY_APPLE_ID != ''
-        run: |
-          xcrun notarytool store-credentials stint-notary \
-            --apple-id "$NOTARY_APPLE_ID" --team-id "$NOTARY_TEAM_ID" --password "$NOTARY_PASSWORD"
-          echo "NOTARY_PROFILE=stint-notary" >> "$GITHUB_ENV"
-
+      # Before any credentials exist on the machine.
       - name: Test
         run: make test
 
+      - name: Import signing certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}            # base64 .p12
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          if [[ -z "$MACOS_CERTIFICATE" ]]; then echo "No certificate; building ad-hoc signed."; exit 0; fi
+          # A throwaway keychain for the certificate and notarization credentials, deleted when
+          # the job ends so nothing outlives it on a self-hosted Mac.
+          SIGNING_KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          echo "SIGNING_KEYCHAIN=$SIGNING_KEYCHAIN" >> "$GITHUB_ENV"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          CERTIFICATE="$RUNNER_TEMP/certificate.p12"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$CERTIFICATE"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$SIGNING_KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN"
+          # Only codesign may use the key.
+          security import "$CERTIFICATE" -P "$MACOS_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign -t cert -f pkcs12 -k "$SIGNING_KEYCHAIN"
+          rm -f "$CERTIFICATE"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$SIGNING_KEYCHAIN"
+          security list-keychains -d user -s "$SIGNING_KEYCHAIN" $(security list-keychains -d user | tr -d '"')
+
+      - name: Store notarization credentials
+        env:
+          NOTARY_APPLE_ID: ${{ secrets.NOTARY_APPLE_ID }}
+          NOTARY_TEAM_ID: ${{ secrets.NOTARY_TEAM_ID }}
+          NOTARY_PASSWORD: ${{ secrets.NOTARY_PASSWORD }}                # app-specific password
+        run: |
+          if [[ -z "$NOTARY_APPLE_ID" ]]; then echo "No notarization credentials; skipping."; exit 0; fi
+          if [[ ! -f "${SIGNING_KEYCHAIN:-}" ]]; then echo "::error::Notarization needs the signing certificate."; exit 1; fi
+          xcrun notarytool store-credentials stint-notary --keychain "$SIGNING_KEYCHAIN" \
+            --apple-id "$NOTARY_APPLE_ID" --team-id "$NOTARY_TEAM_ID" --password "$NOTARY_PASSWORD"
+          echo "NOTARY_PROFILE=stint-notary" >> "$GITHUB_ENV"
+          echo "NOTARY_KEYCHAIN=$SIGNING_KEYCHAIN" >> "$GITHUB_ENV"
+
       - name: Package
+        env:
+          CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}            # "Developer ID Application: …"
         run: make package
+
+      - name: Remove signing keychain
+        if: always()
+        run: |
+          if [[ -f "${SIGNING_KEYCHAIN:-}" ]]; then security delete-keychain "$SIGNING_KEYCHAIN"; fi
 
       - name: Publish release
         env:

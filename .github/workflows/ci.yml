@@ -5,15 +5,22 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     # Stint targets macOS 27 and needs Xcode 27. Set the MACOS_RUNNER repository variable
-    # if your runner label differs (e.g. a self-hosted Mac).
-    runs-on: ${{ vars.MACOS_RUNNER || 'macos-latest' }}
+    # if your runner label differs (e.g. a self-hosted Mac). Pull requests from forks always
+    # use a GitHub-hosted runner: their code is untrusted and must never run on your machine.
+    runs-on: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && vars.MACOS_RUNNER || 'macos-latest' }}
     steps:
-      - uses: actions/checkout@v4
+      # Third-party actions are pinned to a commit so a moved tag can't change what runs.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
           xcode-version: latest-stable
 
@@ -23,7 +30,7 @@ jobs:
       - name: Build app
         run: make app
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: Stint.app
           path: build/Stint.app

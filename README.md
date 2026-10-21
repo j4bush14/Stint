@@ -69,7 +69,7 @@ The version comes from the tag. Releases are ad-hoc signed unless these reposito
 | `CODESIGN_IDENTITY` | e.g. `Developer ID Application: Your Name (TEAMID)` |
 | `NOTARY_APPLE_ID`, `NOTARY_TEAM_ID`, `NOTARY_PASSWORD` | Apple ID, team ID and app-specific password for `notarytool` |
 
-The workflows run on `macos-latest` by default. Set the `MACOS_RUNNER` repository variable to use a runner with Xcode 27, for example a self-hosted Mac. To sign locally, set `CODESIGN_IDENTITY` (and `NOTARY_PROFILE` for notarization) before `make package`.
+The workflows run on `macos-latest` by default. Set the `MACOS_RUNNER` repository variable to use a runner with Xcode 27, for example a self-hosted Mac; pull requests from forks still run on GitHub's runners, so outside code never runs on your machine. Secrets reach only the steps that sign and notarize, after the tests, and the temporary keychain holding them is deleted when the job ends. Actions are pinned to commits; update a pin by replacing the hash with the new release's commit. To sign locally, set `CODESIGN_IDENTITY` (and `NOTARY_PROFILE` for notarization) before `make package`.
 
 ## Project layout
 

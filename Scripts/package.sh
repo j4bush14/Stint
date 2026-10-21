@@ -5,6 +5,7 @@
 #
 # Notarization (optional, needs a Developer ID build; see build-app.sh):
 #   NOTARY_PROFILE=<keychain profile created with `xcrun notarytool store-credentials`>
+#   NOTARY_KEYCHAIN=<keychain holding that profile, if not the login keychain>
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -19,7 +20,8 @@ mkdir -p "$DIST"
 rm -f "$ZIP" "$DMG"
 
 notarize() {
-    xcrun notarytool submit "$1" --keychain-profile "$NOTARY_PROFILE" --wait
+    xcrun notarytool submit "$1" --keychain-profile "$NOTARY_PROFILE" \
+        ${NOTARY_KEYCHAIN:+--keychain "$NOTARY_KEYCHAIN"} --wait
 }
 
 if [[ -n "${NOTARY_PROFILE:-}" ]]; then
