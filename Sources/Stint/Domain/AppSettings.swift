@@ -3,14 +3,16 @@ import Foundation
 
 // MARK: - Option types
 
+/// What the menu bar item shows. The icon takes the shape of the chosen clock style.
 enum MenuBarIconStyle: String, CaseIterable, Identifiable {
-    case ringAndTime, ringOnly, timeOnly
+    // Raw values predate the icon following the clock style; kept so saved choices survive.
+    case iconAndTime = "ringAndTime", iconOnly = "ringOnly", timeOnly
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .ringAndTime: return "Ring & Time"
-        case .ringOnly: return "Ring Only"
-        case .timeOnly: return "Time Only"
+        case .iconAndTime: "Icon & Time"
+        case .iconOnly: "Icon Only"
+        case .timeOnly: "Time Only"
         }
     }
 }
@@ -86,7 +88,7 @@ final class AppSettings: PreferenceStore {
     @Pref("launch.freshCycle") var resetCycleAtLaunch = false
 
     // Menu bar
-    @Pref("menuBar.style") var menuBarIconStyle: MenuBarIconStyle = .ringAndTime
+    @Pref("menuBar.style") var menuBarIconStyle: MenuBarIconStyle = .iconAndTime
     @Pref("menuBar.tintDuringBreaks") var coloredMenuBarIcon = true
     @Pref("menuBar.showTitle") var titleInMenuBarIcon = false
 

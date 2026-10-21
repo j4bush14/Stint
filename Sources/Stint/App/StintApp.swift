@@ -41,7 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .store(in: &cancellables)
         applyAppearance()
 
-        statusItem = StatusItemController(timer: timer, settings: settings, theme: app.theme) { [unowned self] in
+        statusItem = StatusItemController(timer: timer, store: app.store, settings: settings, theme: app.theme) { [unowned self] in
             app.actions
         }
         panel = TimerPanelController(app: app) { [unowned self] in statusItem.buttonFrameOnScreen }

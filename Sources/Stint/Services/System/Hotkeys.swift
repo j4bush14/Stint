@@ -27,14 +27,19 @@ enum HotkeyCommand: UInt32, CaseIterable, Identifiable {
         }
     }
 
-    var display: String {
+    /// The key with the shortcut's modifiers, as menus show it.
+    var keyEquivalent: String {
         switch self {
-        case .toggleTimer: "⌃⌥⌘P"
-        case .skip: "⌃⌥⌘N"
-        case .resetCycle: "⌃⌥⌘R"
-        case .togglePanel: "⌃⌥⌘F"
+        case .toggleTimer: "p"
+        case .skip: "n"
+        case .resetCycle: "r"
+        case .togglePanel: "f"
         }
     }
+
+    static let modifierFlags: NSEvent.ModifierFlags = [.control, .option, .command]
+
+    var display: String { "⌃⌥⌘" + keyEquivalent.uppercased() }
 }
 
 /// Registers the global shortcuts with Carbon while the setting is on, and reports presses.

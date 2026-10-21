@@ -75,12 +75,12 @@ struct AppearancePane: View {
                 Picker("Show", selection: $s.menuBarIconStyle) {
                     ForEach(MenuBarIconStyle.allCases) { Text($0.label).tag($0) }
                 }
-                SettingToggle("Tint the ring during breaks", isOn: $s.coloredMenuBarIcon, id: "coloredMenuBarIcon")
+                SettingToggle("Color the break icon", isOn: $s.coloredMenuBarIcon, id: "coloredMenuBarIcon")
                 SettingToggle("Show the session title", isOn: $s.titleInMenuBarIcon, id: "titleInMenuBarIcon")
             } header: {
                 Text("Menu Bar")
             } footer: {
-                footnote("Stint has no Dock icon. If the timer is missing from the menu bar, it may be full: ⌘-drag icons to make room.")
+                footnote("The icon takes the shape of your clock style and shows ▶ when ready, ❚❚ when paused and a cup during breaks. Click it to show the timer; right-click for more. Stint has no Dock icon: if it's missing from the menu bar, the bar may be full (⌘-drag icons to make room).")
             }
         }
         .formStyle(.grouped)
