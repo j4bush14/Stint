@@ -152,7 +152,7 @@ struct StatusMenuTests {
         #expect(!app.timer.isRunning)
         let paused = menu(app)
         #expect(paused.items[0].subtitle?.contains("paused") == true)
-        #expect(titles(paused).contains("Restart Session"))
+        #expect(titles(paused).contains("Reset Timer"))
         choose("Resume", in: paused)
         #expect(app.timer.isRunning)
     }
@@ -198,7 +198,7 @@ struct StatusMenuTests {
         app.settings.lockIn = true
         app.timer.start()
         let locked = menu(app)
-        for title in ["Pause", "Skip to Break", "Restart Session", "Tag"] {
+        for title in ["Pause", "Skip to Break", "Reset Timer", "Tag"] {
             #expect(locked.items.first { $0.title == title }?.isEnabled == false, "\(title) is disabled")
         }
         #expect(locked.items[0].subtitle?.contains("Lock-In") == true)

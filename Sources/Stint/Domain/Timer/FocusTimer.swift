@@ -85,6 +85,10 @@ final class FocusTimer: ObservableObject {
 
     var hasStarted: Bool { currentSession != nil }
 
+    /// Whether `stop()` would change anything: a session is under way, or a custom time
+    /// has been set for this phase.
+    var canReset: Bool { hasStarted || fixedLength != nil }
+
     /// The selected tag's own timer settings, if it has them.
     var activePreset: TagPreset? {
         guard let tag = store.tag(for: selectedTagID), tag.isPresetEnabled else { return nil }
@@ -218,7 +222,8 @@ final class FocusTimer: ObservableObject {
 
     // MARK: Ending sessions
 
-    /// Ends the current session (recording it as unfinished) and rewinds the phase.
+    /// Resets the timer: ends the current session (recording it as unfinished) and puts the
+    /// phase back to its full length, dropping any custom time.
     @discardableResult
     func stop() -> Bool {
         guard !isLocked else { return false }

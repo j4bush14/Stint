@@ -32,12 +32,12 @@ extension UITests {
             let ui = panel(style: style)
             #expect(ui.value("face") == style.rawValue)
             #expect(ui.value("transport.playPause") == "play")
-            #expect(!ui.exists("transport.stop"))
+            #expect(!ui.exists("transport.reset"))
 
             #expect(ui.click("transport.playPause"))
             #expect(ui.timer.isRunning)
             #expect(ui.value("transport.playPause") == "pause")
-            #expect(ui.exists("transport.stop"))
+            #expect(ui.exists("transport.reset"))
             #expect(ui.exists("transport.skip"))
 
             ui.env.run(ui.timer, for: 65)
@@ -48,9 +48,9 @@ extension UITests {
             #expect(!ui.timer.isRunning)
             #expect(ui.value("transport.playPause") == "play")
 
-            ui.click("transport.stop")
+            ui.click("transport.reset")
             #expect(!ui.timer.hasStarted)
-            #expect(!ui.exists("transport.stop"))
+            #expect(!ui.exists("transport.reset"))
             #expect(ui.value("panel.time") == "25:00")
         }
 
@@ -159,7 +159,7 @@ extension UITests {
                 #expect(ui.value("face") == style.rawValue, "\(style)")
                 #expect(ui.value("panel.time") == "24:30", "\(style)")
                 #expect(ui.timer.isRunning, "\(style)")
-                #expect(ui.exists("transport.stop"), "\(style)")
+                #expect(ui.exists("transport.reset"), "\(style)")
             }
             ui.click("transport.playPause")
             #expect(!ui.timer.isRunning)
@@ -196,7 +196,7 @@ extension UITests {
             ui.click("transport.playPause")
             #expect(ui.timer.isRunning)
             ui.click("transport.playPause")
-            ui.click("transport.stop")
+            ui.click("transport.reset")
             ui.click("transport.skip")
             ui.click("panel.time")
             #expect(ui.timer.isRunning)
@@ -322,5 +322,22 @@ extension UITests.TimerPanel {
         #expect(ui.value("panel.hide") == "visible")
         ui.click("panel.hide")
         #expect(ui.actions.entries == ["hidePanel"])
+    }
+}
+
+extension UITests.TimerPanel {
+    @Test("Reset appears after picking a custom time and puts the full length back")
+    func resetCustomTime() {
+        let ui = UIHarness(size: TimerPanelView.defaultSize) { TimerPanelView() }
+        #expect(!ui.exists("transport.reset"))
+        ui.click("panel.time")
+        ui.click("picker.preset.45")
+        ui.press(.return)
+        #expect(ui.value("panel.time") == "45:00")
+        #expect(ui.exists("transport.reset"))
+
+        ui.click("transport.reset")
+        #expect(ui.value("panel.time") == "25:00")
+        #expect(!ui.exists("transport.reset"))
     }
 }

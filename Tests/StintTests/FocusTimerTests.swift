@@ -20,6 +20,25 @@ struct FocusTimerTests {
         #expect(timer.progress == 0)
     }
 
+    @Test("Reset is offered once there's something to reset, and puts the full length back")
+    func reset() {
+        let timer = env.makeTimer()
+        #expect(!timer.canReset)
+        timer.setTimeLeft(10 * 60)
+        #expect(timer.canReset, "a custom time can be reset")
+        timer.stop()
+        #expect(!timer.canReset)
+        #expect(timer.remaining == 25 * 60)
+
+        timer.start()
+        env.run(timer, for: 90)
+        #expect(timer.canReset, "a running session can be reset")
+        timer.stop()
+        #expect(!timer.hasStarted)
+        #expect(timer.remaining == 25 * 60)
+        #expect(timer.phase == .focus, "reset keeps the phase")
+    }
+
     @Test("Counts down from the clock while running")
     func countsDown() {
         let timer = env.makeTimer()

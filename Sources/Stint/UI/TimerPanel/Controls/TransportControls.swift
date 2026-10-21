@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Play/pause, flanked by stop and skip once a session has started. The three buttons
-/// share a `GlassEffectContainer`, so stop and skip morph out of the play button.
+/// Play/pause, flanked by reset and skip. The buttons share a `GlassEffectContainer`, so
+/// reset and skip morph out of the play button when they appear.
 struct TransportControls: View {
     @EnvironmentObject private var theme: ThemeModel
     let scale: CGFloat
@@ -15,14 +15,16 @@ struct TransportControls: View {
     var body: some View {
         GlassEffectContainer(spacing: 18 * scale) {
             HStack(spacing: 14 * scale) {
-                if timer.hasStarted && !playOnly {
-                    secondary("stop.fill", help: "Stop") { timer.stop() }
-                        .glassEffectID("stop", in: glassSpace)
-                        .testTarget("transport.stop")
+                if timer.canReset && !playOnly {
+                    secondary("arrow.counterclockwise", help: "Reset to \(TimeFormat.clock(timer.duration(of: timer.phase)))",
+                              label: "Reset") { timer.stop() }
+                        .glassEffectID("reset", in: glassSpace)
+                        .testTarget("transport.reset")
                 }
                 playPause
                 if timer.hasStarted && !playOnly {
-                    secondary("forward.end.fill", help: "Skip") { timer.skip() }
+                    secondary("forward.end.fill", help: timer.phase == .focus ? "Skip to break" : "Skip break",
+                              label: "Skip") { timer.skip() }
                         .glassEffectID("skip", in: glassSpace)
                         .testTarget("transport.skip")
                 }
@@ -47,7 +49,7 @@ struct TransportControls: View {
         .testTarget("transport.playPause", value: timer.isRunning ? "pause" : "play")
     }
 
-    private func secondary(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
+    private func secondary(_ symbol: String, help: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 13 * scale, weight: .semibold))
@@ -56,6 +58,7 @@ struct TransportControls: View {
         .buttonStyle(.panelGlass)
         .disabled(timer.isLocked)
         .help(help)
-        .accessibilityLabel(help)
+        .accessibilityLabel(label)
+        .accessibilityHint(help)
     }
 }

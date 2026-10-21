@@ -13,6 +13,10 @@
 
 Stint is a free, open-source Pomodoro timer for macOS. Work in focused stretches, take real breaks, and see where your time went, all in a pane of Liquid Glass.
 
+<p align="center">
+  <img src="docs/images/timer.png" width="720" alt="Stint's timer window: a progress ring around 25:00, a play button, and the current phase, Focus · 1 of 4">
+</p>
+
 - **Lives in your menu bar.** A ring, dial, digits or flip tiles show your session at a glance.
 - **Four clock faces.** Ring, kitchen-timer dial, digital, or a mechanical split-flap.
 - **Lock-In.** No pausing or skipping until the session is done.
@@ -35,7 +39,7 @@ Requires macOS 27 on Apple silicon. Summaries need Apple Intelligence turned on 
 | To | Do this |
 |---|---|
 | Show or hide the timer | Click Stint in the menu bar |
-| Start, pause or skip | Use the buttons on the timer, or right-click the menu bar icon |
+| Start, pause, reset or skip | Use the buttons on the timer (↺ resets it), or right-click the menu bar icon |
 | Set a different time | Click the countdown, pick a time, then click anywhere outside |
 | Name a session | Click "Add a title" under the time |
 | Change the look | Right-click the timer › **Clock Style**, or open **Settings** (⌘,) |

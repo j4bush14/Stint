@@ -38,10 +38,10 @@ enum StatusMenu {
         skip.isEnabled = !locked
         menu.addItem(skip)
 
-        if timer.hasStarted {
-            let restart = ClosureMenuItem("Restart Session", symbol: "arrow.counterclockwise") { timer.stop() }
-            restart.isEnabled = !locked
-            menu.addItem(restart)
+        if timer.canReset {
+            let reset = ClosureMenuItem("Reset Timer", symbol: "arrow.counterclockwise") { timer.stop() }
+            reset.isEnabled = !locked
+            menu.addItem(reset)
         }
         if timer.completedFocus > 0 || timer.phase != .focus {
             let newCycle = ClosureMenuItem("Start New Cycle", symbol: "arrow.trianglehead.2.clockwise",
