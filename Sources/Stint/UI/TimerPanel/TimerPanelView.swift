@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Root view of the floating timer panel.
@@ -30,6 +31,7 @@ struct TimerPanelView: View {
 
     @EnvironmentObject private var timer: FocusTimer
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.appActions) private var actions
     @State private var isEditingTitle = false
     @State private var isHovering = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -63,11 +65,11 @@ struct TimerPanelView: View {
         // Drag the panel from anywhere that isn't a control; the first click works even
         // while another app is active.
         .contentShape(Rectangle())
-        .contextMenu { menu } // the same commands as ⋯, in every layout
+        // Right-click anywhere opens the same menu as ⋯, in every layout.
+        .background(PanelContextMenu(makeMenu: makeMenu))
         .gesture(WindowDragGesture())
         .allowsWindowActivationEvents(true)
-        .background(theme.panelWash(for: timer.phase))
-        .animation(.smooth(duration: 0.5), value: timer.phase)
+        .background(PanelWash(phase: timer.phase))
         .foregroundStyle(.white)
         .onHover { isHovering = $0 }
         .animation(.smooth(duration: 0.3), value: timer.hasStarted)
@@ -86,13 +88,17 @@ struct TimerPanelView: View {
         min(1.5, max(1, min(size.width, size.height) / 420))
     }
 
-    private var menu: PanelMenu { PanelMenu(onRename: { isEditingTitle = true }) }
+    /// The panel menu as of now; built each time it opens so it can't change while open.
+    private func makeMenu() -> NSMenu {
+        let isEditingTitle = $isEditingTitle
+        return PanelMenu.make(timer: timer, settings: settings, actions: actions) { isEditingTitle.wrappedValue = true }
+    }
 
     private var showsButtons: Bool { isHovering || settings.alwaysShowPanelButtons }
 
     /// Hide and ⋯ in the panel's top corners, `inset` from the edges.
     private func cornerButtons(scale: CGFloat, inset: CGFloat) -> some View {
-        PanelCornerButtons(scale: scale, isVisible: showsButtons, menu: menu)
+        PanelCornerButtons(scale: scale, isVisible: showsButtons, makeMenu: makeMenu)
             .padding(inset)
             .inactiveWhileEditingTime()
             .matchedGeometryEffect(id: Part.cornerButtons, in: morph)
@@ -144,7 +150,7 @@ struct TimerPanelView: View {
         let diameter = max(110, min(size.width - 40, (size.height - 40) / 1.28))
         // The corners beside a circle are free; the buttons go there unless the ring
         // fills the window so tightly that they'd touch it (then right-click still works).
-        let inset: CGFloat = 10
+        let inset: CGFloat = 14 // clear of the resize grips along the rounded corners
         let ringCenter = CGPoint(x: size.width / 2, y: max(14, (size.height - 1.28 * diameter) / 2) + diameter / 2)
         let buttonCenter = inset + panelButtonSize / 2
         let cornersFree = hypot(ringCenter.x - buttonCenter, ringCenter.y - buttonCenter)
@@ -234,10 +240,35 @@ struct TimerPanelView: View {
                 .inactiveWhileEditingTime()
                 .matchedGeometryEffect(id: Part.controls, in: morph)
 
-            PanelMenuButton(menu: menu, scale: windowButtonScale, isVisible: showsButtons)
+            PanelMenuButton(scale: windowButtonScale, isVisible: showsButtons, makeMenu: makeMenu)
                 .inactiveWhileEditingTime()
                 .padding(.leading, -2)
         }
         .padding(.horizontal, 10)
+    }
+}
+
+/// Gives the panel's window the menu its right-click opens (see `FloatingPanel`).
+private struct PanelContextMenu: NSViewRepresentable {
+    let makeMenu: () -> NSMenu
+
+    func makeNSView(context: Context) -> RegistrarView { RegistrarView() }
+
+    func updateNSView(_ view: RegistrarView, context: Context) {
+        view.makeMenu = makeMenu
+    }
+
+    final class RegistrarView: NSView {
+        var makeMenu: (() -> NSMenu)? { didSet { register() } }
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            register()
+        }
+
+        private func register() {
+            (window as? FloatingPanel)?.makeContextMenu = makeMenu
+        }
     }
 }

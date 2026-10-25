@@ -9,6 +9,7 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
     private let app: AppEnvironment
     private let panel: FloatingPanel
     private let glass: NSGlassEffectView
+    private let grips = ResizeGrips()
     /// Where the menu bar icon is, for placing the panel beneath it.
     private let anchor: () -> NSRect?
     /// True until the panel has a saved frame or has been placed under the menu bar icon.
@@ -56,7 +57,14 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
         let hosting = NSHostingView(rootView: TimerPanelView().appEnvironment(app))
         hosting.sizingOptions = [] // the window decides the size; SwiftUI adapts to it
         glass.contentView = hosting
-        panel.contentView = glass
+        // The glass, with wide resize grips laid over its edges.
+        let container = NSView(frame: glass.frame)
+        glass.autoresizingMask = [.width, .height]
+        grips.frame = container.bounds
+        grips.autoresizingMask = [.width, .height]
+        container.addSubview(glass)
+        container.addSubview(grips)
+        panel.contentView = container
         panel.setContentSize(TimerPanelView.defaultSize)
 
         needsPlacement = !panel.setFrameUsingName(Self.autosaveName)
@@ -70,6 +78,9 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
     }
 
     var isVisible: Bool { panel.isVisible }
+
+    /// The panel's window (for tests and placement checks).
+    var window: NSWindow { panel }
 
     func show() {
         if needsPlacement || !isFullyOnScreen { placeBelowMenuBarIcon() }
@@ -118,11 +129,11 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
 
     func windowDidResize(_ notification: Notification) {
         updateCornerRadius()
-        app.wallpaper.refresh()
+        app.wallpaper.refreshSoon()
     }
 
     func windowDidMove(_ notification: Notification) {
-        app.wallpaper.refresh()
+        app.wallpaper.refreshSoon()
     }
 
     // MARK: Private
@@ -134,6 +145,7 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
     /// Rounded corners for the larger layouts, a full capsule for the mini bar.
     private func updateCornerRadius() {
         glass.cornerRadius = min(Self.maxCornerRadius, panel.frame.height / 2)
+        grips.cornerRadius = glass.cornerRadius
     }
 
     private var isFullyOnScreen: Bool {

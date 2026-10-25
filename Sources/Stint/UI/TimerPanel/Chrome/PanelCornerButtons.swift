@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// The panel's window buttons: Hide at the top-left corner, where every Mac window keeps
@@ -7,13 +8,13 @@ import SwiftUI
 struct PanelCornerButtons: View {
     let scale: CGFloat
     let isVisible: Bool
-    let menu: PanelMenu
+    let makeMenu: () -> NSMenu
 
     var body: some View {
         HStack(spacing: 0) {
             PanelHideButton(scale: scale, isVisible: isVisible)
             Spacer(minLength: 0) // no content, so clicks between the buttons reach the panel
-            PanelMenuButton(menu: menu, scale: scale, isVisible: isVisible)
+            PanelMenuButton(scale: scale, isVisible: isVisible, makeMenu: makeMenu)
         }
     }
 }

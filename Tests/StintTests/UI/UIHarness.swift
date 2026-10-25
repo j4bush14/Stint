@@ -28,6 +28,8 @@ final class UIHarness {
     private let window: NSWindow
     private let host: NSView
     private let targets = TargetRegistry()
+    /// Menus the views popped up, kept instead of shown (see `MenuPresenter`).
+    private let poppedMenus = PoppedMenus()
 
     /// Finished windows are hidden but kept alive: SwiftUI may still have updates queued for
     /// their views, and freeing a window under it crashes the next test.
@@ -46,6 +48,7 @@ final class UIHarness {
             // The test runner is a background process, so every click would count as one that
             // activates the app; gestures ignore those by default. Behave like an active window.
             .allowsWindowActivationEvents(true)
+            .environment(\.menuPresenter, poppedMenus.presenter)
             .overlayPreferenceValue(TestTargetsKey.self) { found in
                 GeometryReader { proxy in
                     let _ = registry.update(found, in: proxy)
@@ -53,8 +56,11 @@ final class UIHarness {
                 }
             }
 
-        let window = KeyableWindow(contentRect: NSRect(origin: .zero, size: size),
+        // The app's own panel class, so right-clicks and focus behave as in the app.
+        let window = FloatingPanel(contentRect: NSRect(origin: .zero, size: size),
                                    styleMask: [.borderless], backing: .buffered, defer: false)
+        window.onEscape = { true } // Esc is for the views under test, not for hiding the window
+        window.menuPresenter = poppedMenus.presenter
         let hosting = NSHostingView(rootView: root)
         hosting.sizingOptions = [] // the window decides the size, as in the app
         window.contentView = hosting
@@ -134,25 +140,14 @@ final class UIHarness {
         return withMenuChooser(path: path) { clickInWindow(at: windowPoint(point)) }
     }
 
-    /// Chooses from the context menu a right-click at this point would open. The menu comes
-    /// from the clicked view, as AppKit gets it; the item is chosen without showing the menu,
-    /// because showing it runs a tracking loop a test can't drive.
+    /// The last menu a view popped up, if any (cleared by each `chooseMenuItem`).
+    var lastPoppedMenu: NSMenu? { poppedMenus.last }
+
+    /// Right-clicks a point and chooses from the menu that opens.
     @discardableResult
     func chooseContextMenuItem(at point: CGPoint, path: [String]) -> [String] {
         let location = windowPoint(point)
-        let event = mouseEvent(.rightMouseDown, at: location)
-        guard let frameView = window.contentView?.superview else { return [] }
-        var view = frameView.hitTest(frameView.convert(location, from: nil))
-        while let current = view {
-            if let menu = current.menu(for: event) {
-                menu.update()
-                MenuChooser.choose(path, in: menu)
-                pump()
-                return menu.items.map(\.title).filter { !$0.isEmpty }
-            }
-            view = current.superview
-        }
-        return []
+        return withMenuChooser(path: path) { window.sendEvent(mouseEvent(.rightMouseDown, at: location)) }
     }
 
     // MARK: Other input
@@ -215,6 +210,9 @@ final class UIHarness {
     }
 
     // MARK: Sheets and alerts
+
+    /// Whether the real mouse pointer is over the test window (hover effects depend on it).
+    var isPointerOverWindow: Bool { window.frame.contains(NSEvent.mouseLocation) }
 
     /// Whether a sheet (a dialog, an alert or a SwiftUI `.sheet`) is attached to the window.
     var hasSheet: Bool { window.attachedSheet != nil }
@@ -319,8 +317,15 @@ final class UIHarness {
             MainActor.assumeIsolated { if let menu { chooser.began(menu) } }
         }
         defer { NotificationCenter.default.removeObserver(observer) }
+        poppedMenus.last = nil
         open()
         pump()
+        if chooser.titles.isEmpty, let menu = poppedMenus.last {
+            // A menu the app pops up itself: choose from the menu it would have shown.
+            MenuChooser.choose(path, in: menu)
+            pump()
+            return menu.items.map(\.title).filter { !$0.isEmpty }
+        }
         return chooser.titles
     }
 
@@ -369,11 +374,6 @@ final class ActionLog {
             quit: { [unowned self] in entries.append("quit") }
         )
     }
-}
-
-/// A borderless window that can still take keyboard focus, like the real timer panel.
-private final class KeyableWindow: NSWindow {
-    override var canBecomeKey: Bool { true }
 }
 
 /// Collects target frames (in the hosted view's coordinates) as SwiftUI lays out.
@@ -426,5 +426,15 @@ private final class MenuChooser {
                 current = submenu
             }
         }
+    }
+}
+
+/// Keeps the menus views pop up, so tests can look at them and choose from them.
+@MainActor
+private final class PoppedMenus {
+    var last: NSMenu?
+
+    var presenter: MenuPresenter {
+        MenuPresenter { [weak self] menu, _, _ in self?.last = menu }
     }
 }

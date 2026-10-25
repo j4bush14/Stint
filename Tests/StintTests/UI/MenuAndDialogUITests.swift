@@ -12,7 +12,7 @@ extension UITests {
         private func header(onRename: @escaping () -> Void = {}) -> UIHarness {
             UIHarness(size: CGSize(width: 320, height: 60)) {
                 VStack {
-                    PanelCornerButtons(scale: 1, isVisible: true, menu: PanelMenu(onRename: onRename))
+                    MenuHeader(onRename: onRename)
                     PhaseLabel(scale: 1)
                 }
             }
@@ -294,5 +294,60 @@ extension UITests.TimerPanel {
         #expect(ui.value("picker.minutes") == "23")
         ui.press(.return)
         #expect(ui.timer.remaining == 23 * 60)
+    }
+}
+
+/// The panel's corner buttons with their real menu, built from the hosted environment.
+private struct MenuHeader: View {
+    @EnvironmentObject private var timer: FocusTimer
+    @EnvironmentObject private var settings: AppSettings
+    @Environment(\.appActions) private var actions
+    let onRename: () -> Void
+
+    var body: some View {
+        PanelCornerButtons(scale: 1, isVisible: true) {
+            PanelMenu.make(timer: timer, settings: settings, actions: actions, onRename: onRename)
+        }
+    }
+}
+
+extension UITests.PanelMenus {
+    /// The bug this guards against: the menu was a SwiftUI menu, rebuilt on every tick of a
+    /// running timer, so its items moved under the pointer and a click could hit Hide Window.
+    /// Now it's a snapshot built when it opens.
+    @Test("The ⋯ and right-click menus don't change while the clock runs", arguments: ["⋯ button", "right-click"])
+    func menuIsStableWhileRunning(opener: String) throws {
+        let ui = UIHarness(size: TimerPanelView.defaultSize) { TimerPanelView() }
+        ui.settings.alwaysShowPanelButtons = true
+        ui.click("transport.playPause")
+        #expect(ui.timer.isRunning)
+
+        if opener == "⋯ button" {
+            ui.chooseMenuItem("panel.menu", path: [])
+        } else {
+            ui.chooseContextMenuItem(at: CGPoint(x: 6, y: TimerPanelView.defaultSize.height / 2), path: [])
+        }
+        let menu = try #require(ui.lastPoppedMenu, "the menu opened as a snapshot")
+        let items = menu.items.map(ObjectIdentifier.init)
+        let styles = try #require(menu.items.first { $0.title == "Clock Style" }?.submenu)
+
+        ui.env.run(ui.timer, for: 2) // time passes while it's open
+        ui.pump()
+        #expect(menu.items.map(ObjectIdentifier.init) == items, "no item was replaced")
+        #expect(styles.items.map(\.title) == ClockStyle.allCases.map(\.label))
+    }
+
+    @Test("Choosing a clock style while running keeps the window and switches the face", arguments: ClockStyle.allCases)
+    func clockStyleWhileRunning(style: ClockStyle) {
+        let ui = UIHarness(size: TimerPanelView.defaultSize) { TimerPanelView() }
+        ui.settings.alwaysShowPanelButtons = true
+        ui.settings.clockStyle = style == .ring ? .flip : .ring
+        ui.click("transport.playPause")
+        ui.env.run(ui.timer, for: 1)
+        ui.chooseMenuItem("panel.menu", path: ["Clock Style", style.label])
+        #expect(ui.settings.clockStyle == style)
+        #expect(ui.value("face") == style.rawValue)
+        #expect(ui.actions.entries.isEmpty, "nothing else (like Hide Window) was triggered")
+        #expect(ui.timer.isRunning)
     }
 }

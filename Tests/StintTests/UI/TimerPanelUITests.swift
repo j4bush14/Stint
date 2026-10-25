@@ -245,7 +245,7 @@ extension UITests.TimerPanel {
         let ui = UIHarness(size: CGSize(width: 320, height: 60)) {
             ZStack {
                 Color.white.opacity(0.001).onTapGesture { taps.count += 1 }
-                PanelCornerButtons(scale: 1, isVisible: visible, menu: PanelMenu(onRename: {}))
+                PanelCornerButtons(scale: 1, isVisible: visible) { NSMenu() }
             }
         }
         #expect(ui.value("panel.hide") == (visible ? "visible" : "hidden"))
@@ -316,7 +316,8 @@ extension UITests.TimerPanel {
     @Test("Window buttons wait for the pointer unless set to always show")
     func windowButtonsAlwaysShown() {
         let ui = UIHarness(size: TimerPanelView.defaultSize) { TimerPanelView() }
-        #expect(ui.value("panel.hide") == "hidden")
+        // Hidden unless the pointer happens to be over the test window.
+        #expect(ui.value("panel.hide") == (ui.isPointerOverWindow ? "visible" : "hidden"))
         ui.settings.alwaysShowPanelButtons = true
         ui.pump()
         #expect(ui.value("panel.hide") == "visible")
@@ -339,5 +340,28 @@ extension UITests.TimerPanel {
         ui.click("transport.reset")
         #expect(ui.value("panel.time") == "25:00")
         #expect(!ui.exists("transport.reset"))
+    }
+}
+
+extension UITests.TimerPanel {
+    @Test("No resize grip covers the Hide or ⋯ buttons in any layout", arguments: [
+        TimerPanelView.defaultSize, CGSize(width: 240, height: 290), CGSize(width: 200, height: 230),
+        CGSize(width: 560, height: 280), CGSize(width: 460, height: 580), CGSize(width: 300, height: 72),
+    ])
+    func gripsLeaveButtonsAlone(size: CGSize) throws {
+        let ui = UIHarness(size: size) { TimerPanelView() }
+        ui.settings.alwaysShowPanelButtons = true
+        ui.pump()
+        let radius = min(34, size.height / 2)
+        for name in ["panel.hide", "panel.menu"] where ui.exists(name) {
+            let frame = try #require(ui.frame(name))
+            // Points around the button's circle, in the window's bottom-up coordinates.
+            for step in 0..<16 {
+                let angle = Double(step) / 16 * 2 * .pi
+                let point = NSPoint(x: frame.midX + cos(angle) * frame.width / 2,
+                                    y: size.height - (frame.midY + sin(angle) * frame.height / 2))
+                #expect(ResizeGrips.edges(at: point, in: size, cornerRadius: radius).isEmpty, "\(name) at \(point)")
+            }
+        }
     }
 }

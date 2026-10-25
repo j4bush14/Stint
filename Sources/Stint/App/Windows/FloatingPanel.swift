@@ -6,6 +6,9 @@ final class FloatingPanel: NSPanel {
     var onEscape: (() -> Bool)?
     /// Focus moved to another window or app.
     var onResignKey: (() -> Void)?
+    /// The menu a right-click (or Control-click) anywhere on the panel opens, built as it opens.
+    var makeContextMenu: (() -> NSMenu)?
+    var menuPresenter = MenuPresenter.system
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
@@ -17,6 +20,24 @@ final class FloatingPanel: NSPanel {
     override func resignKey() {
         super.resignKey()
         onResignKey?()
+    }
+
+    override func sendEvent(_ event: NSEvent) {
+        if let makeContextMenu, Self.isContextClick(event), !isOverText(event), let view = contentView {
+            menuPresenter.present(makeContextMenu(), view.convert(event.locationInWindow, from: nil), view)
+            return
+        }
+        super.sendEvent(event)
+    }
+
+    private static func isContextClick(_ event: NSEvent) -> Bool {
+        event.type == .rightMouseDown || (event.type == .leftMouseDown && event.modifierFlags.contains(.control))
+    }
+
+    /// Text being edited keeps its own menu (cut, copy, paste).
+    private func isOverText(_ event: NSEvent) -> Bool {
+        guard let frameView = contentView?.superview else { return false }
+        return frameView.hitTest(frameView.convert(event.locationInWindow, from: nil)) is NSText
     }
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {

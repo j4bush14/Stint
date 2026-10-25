@@ -137,7 +137,7 @@ struct StatusMenuTests {
     func ready() {
         let app = env.makeApp()
         let shown = menu(app)
-        #expect(titles(shown) == ["Focus · 1 of 4", "Start Focus", "Start For", "Skip to Break", "Tag",
+        #expect(titles(shown) == ["Focus · 1 of 4", "Start Focus", "Start For", "Skip to Break", "Tag", "Clock Style",
                                   "Show Timer", "History", "Settings…", "Quit Stint"])
         #expect(shown.items[0].subtitle == "25:00 left")
         choose("Start Focus", in: shown)

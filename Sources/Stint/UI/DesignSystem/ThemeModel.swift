@@ -42,21 +42,27 @@ final class ThemeModel: ObservableObject {
         settings.palette == .wallpaper ? .clear : .regular
     }
 
-    /// Color laid over the panel's glass. Constant per phase, so starting and pausing never
-    /// shift the background; `tintStrength` sets how much of the glass shows through.
-    func panelWash(for phase: Phase) -> AnyShapeStyle {
+    /// Color laid over the panel's glass, top to bottom. Constant per phase, so starting
+    /// and pausing never shift the background; `tintStrength` sets how much of the glass
+    /// shows through.
+    func washColors(for phase: Phase) -> (top: Color, bottom: Color) {
         let strength = settings.tintStrength
         guard settings.palette == .wallpaper else {
-            return AnyShapeStyle(color(for: phase).opacity(0.25 + 0.6 * strength))
+            let color = color(for: phase).opacity(0.25 + 0.6 * strength)
+            return (color, color)
         }
-        // Wallpaper: a gradient of the sampled colors, or a soft scrim that keeps white text
-        // readable over whatever the clear glass shows.
+        // Wallpaper: the sampled colors, or a soft scrim that keeps white text readable over
+        // whatever the clear glass shows.
+        guard let sample = wallpaper.sample else {
+            return (.black.opacity(0.06 + 0.25 * strength), .black.opacity(0.14 + 0.35 * strength))
+        }
         let opacity = 0.15 + 0.6 * strength
-        let colors: [Color] = if let sample = wallpaper.sample {
-            [Color(nsColor: sample.top).opacity(opacity), Color(nsColor: sample.bottom).opacity(opacity)]
-        } else {
-            [Color.black.opacity(0.06 + 0.25 * strength), Color.black.opacity(0.14 + 0.35 * strength)]
-        }
-        return AnyShapeStyle(LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom))
+        return (Color(nsColor: sample.top).opacity(opacity), Color(nsColor: sample.bottom).opacity(opacity))
+    }
+
+    /// The wash as a single style, for previews.
+    func panelWash(for phase: Phase) -> AnyShapeStyle {
+        let (top, bottom) = washColors(for: phase)
+        return AnyShapeStyle(LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom))
     }
 }
