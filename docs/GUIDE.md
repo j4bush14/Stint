@@ -68,13 +68,16 @@ You need Xcode 27 (Swift 6.4).
 | `make open` | Open the package in Xcode |
 | `make logs` | Stream the running app's log messages |
 | `make package` | Build `dist/Stint-<version>.dmg` and `.zip` plus checksums |
+| `make verify` | Install the packaged `.dmg` as a user would and check it (signature, version, contents, checksums) |
 | `make clean` | Remove build products |
 
 **What the tests cover.** The unit tests cover the timer (cycles, pausing, rewind, Lock-In, tag timers, saved state, editing the time), the session store and CSV export, history periods and charts, the menu bar item and its menu, website-blocking rules, commands and `stint://` parsing, wallpaper sampling and colors. They use throwaway preferences and a temporary folder, never your real data.
 
 The UI tests in `Tests/StintTests/UI` host the real views in a real window and click them: transport buttons, the time picker, renaming, every clock style and layout, the panel's menus, every Settings control, tags, History and the session editor. Controls are found by `testTarget` names, which also report what a control shows, so tests check the screen updated, not just the model. `UIHarness` explains how input is delivered.
 
-**The website** lives in [`site/`](../site/README.md): `npm install`, then `npm run dev`.
+**The website** lives in [`site/`](../site/README.md): `npm install`, then `npm run dev`. It's published to GitHub Pages by `.github/workflows/pages.yml` whenever `site/` changes on `main`.
+
+**Continuous integration.** Every push and pull request runs, on GitHub's `xcode-27` runner: the full test suite, a package build, and `Scripts/verify-package.sh`, which mounts the `.dmg`, installs the app, checks its signature, version, architecture and bundled files, and launches it. A second job lints, type-checks and builds the website. The packaged build is kept with each run as a downloadable artifact.
 
 ---
 
@@ -85,7 +88,7 @@ GitHub Actions builds the app, packages a `.dmg` and a `.zip`, and publishes the
 - **From GitHub:** **Actions › Release › Run workflow**, type the version (e.g. `2.1.0`), and run. The tag is created for you.
 - **From Terminal:** `git tag v2.1.0 && git push origin v2.1.0`
 
-The version comes from the tag or what you typed. Releases are ad-hoc signed, and the release notes tell people how to open an un-notarized app. Add these repository secrets to have releases Developer ID signed and notarized instead:
+The version comes from the tag or what you typed. The package is verified (installed, checked and launched) before anything is published. Releases are ad-hoc signed, and the release notes tell people how to open an un-notarized app. Add these repository secrets to have releases Developer ID signed and notarized instead:
 
 | Secret | Value |
 |---|---|

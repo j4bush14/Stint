@@ -4,47 +4,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<title>Blocked</title>
+<title>Blocked during focus · Stint</title>
 <style>
   :root {
-    --bg: #f5f5f7;
+    --bg: #f6f7f9;
     --text: #1d1d1f;
     --secondary: #6e6e73;
+    --hairline: rgb(0 0 0 / 0.08);
+    --focus: #216ebd;
+    --rest: #148794;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1c1c1e;
+      --bg: #0d0f12;
       --text: #f5f5f7;
       --secondary: #98989d;
+      --hairline: rgb(255 255 255 / 0.1);
     }
   }
+  * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; }
   body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
+    padding: 32px 24px;
     background: var(--bg);
     color: var(--text);
-    font: 17px/1.5 -apple-system, system-ui, sans-serif;
-    text-align: center;
-    padding: 24px;
-    box-sizing: border-box;
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
   }
-  main { max-width: 420px; }
-  h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.01em; margin: 0 0 8px; }
-  p { margin: 0; color: var(--secondary); }
-  .app { font-size: 13px; font-weight: 600; color: var(--secondary); margin-bottom: 20px; }
+  /* Soft light in Stint's focus and break colors. */
+  .glow {
+    position: fixed;
+    width: 720px;
+    height: 720px;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.22;
+    pointer-events: none;
+  }
+  .glow.focus { background: var(--focus); top: -360px; right: -220px; }
+  .glow.rest { background: var(--rest); bottom: -400px; left: -260px; opacity: 0.16; }
+
+  main {
+    position: relative;
+    max-width: 460px;
+    text-align: center;
+    /* No fill mode: if animations don't run, the content still shows. */
+    animation: arrive 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .icon { display: block; width: 76px; height: 76px; margin: 0 auto 28px; filter: drop-shadow(0 10px 24px rgb(33 110 189 / 0.35)); }
+  .icon .ring { transform-origin: 32px 32px; animation: breathe 5s ease-in-out infinite; }
+  .eyebrow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--secondary);
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--focus); }
+  h1 {
+    margin: 0 0 12px;
+    font: 600 34px/1.15 -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+  p { margin: 0; color: var(--secondary); text-wrap: pretty; }
+  .note {
+    margin-top: 36px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    font-size: 13px;
+  }
+  @keyframes arrive { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes breathe { 50% { transform: scale(1.06); } }
+  @media (prefers-reduced-motion: reduce) {
+    main, .icon .ring { animation: none; }
+  }
 </style>
 </head>
 <body>
+  <div class="glow focus"></div>
+  <div class="glow rest"></div>
   <main>
-    <div class="app">Stint</div>
-    <h1 id="title">This site is blocked</h1>
-    <p>It'll be available again when your focus session ends.</p>
+    <!-- Stint's icon: a ring on the teal-to-blue tile. -->
+    <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1e98a3"/>
+          <stop offset="1" stop-color="#2353c0"/>
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="15" fill="url(#tile)"/>
+      <g class="ring" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round">
+        <circle cx="32" cy="32" r="17" stroke-opacity="0.35"/>
+        <path d="M32 15a17 17 0 1 1-16.2 22"/>
+      </g>
+    </svg>
+
+    <div class="eyebrow"><span class="dot"></span>Focus session in progress</div>
+    <h1 id="title">This site can wait.</h1>
+    <p>It'll open again as soon as this focus session ends, or during your next break.</p>
+    <p class="note">Blocked by Stint. Choose which sites are blocked in Stint's <span style="white-space: nowrap">Settings › Blocking</span>.</p>
   </main>
   <script>
+    // The blocker passes the site it replaced, e.g. Blocked.html?site=reddit.com. Inserted as
+    // text only, so a crafted address can't add markup.
     const site = new URLSearchParams(location.search).get("site");
-    if (site) document.getElementById("title").textContent = site + " is blocked";
+    if (site) {
+      document.getElementById("title").textContent = site + " can wait.";
+      document.title = site + " is blocked during focus · Stint";
+    }
   </script>
 </body>
 </html>

@@ -95,6 +95,10 @@ jobs:
           CODESIGN_IDENTITY: ${{ secrets.CODESIGN_IDENTITY }}            # "Developer ID Application: …"
         run: make package
 
+      # Never publish a package that doesn't install and launch.
+      - name: Verify the package
+        run: Scripts/verify-package.sh "dist/Stint-$VERSION.dmg"
+
       - name: Remove signing keychain
         if: always()
         run: |

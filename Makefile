@@ -1,5 +1,5 @@
 # Stint — common tasks. Run `make help` for a list.
-.PHONY: help app run install uninstall test test-unit test-ui open logs package clean
+.PHONY: help app run install uninstall test test-unit test-ui open logs package verify clean
 
 APP := build/Stint.app
 
@@ -41,6 +41,9 @@ logs: ## Stream the running app's log messages
 
 package: ## Build a release .zip and .dmg into dist/
 	@Scripts/package.sh
+
+verify: ## Check the packaged .dmg installs and works (run after make package)
+	@Scripts/verify-package.sh $(firstword $(wildcard dist/*.dmg))
 
 clean: ## Remove build products
 	@rm -rf .build build dist
