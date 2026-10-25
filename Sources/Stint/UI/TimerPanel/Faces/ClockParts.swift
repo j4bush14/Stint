@@ -2,6 +2,29 @@ import SwiftUI
 
 // Shapes the clock faces are built from.
 
+/// Shows `value` moving the way a clock should: a steady linear glide for each second's
+/// small step forward, and a quick ease for jumps (a reset, a skip, a new phase, a typed-in
+/// time) instead of crawling there over a second.
+struct Gliding<Content: View>: View {
+    let value: Double
+    @ViewBuilder let content: (Double) -> Content
+    @State private var shown: Double?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        content(shown ?? value)
+            .onChange(of: value) { old, new in
+                withAnimation(reduceMotion ? nil : Self.motion(from: old, to: new)) { shown = new }
+            }
+    }
+
+    /// The animation for a move from `old` to `new` (both 0…1).
+    nonisolated static func motion(from old: Double, to new: Double) -> Animation {
+        let step = new - old
+        return step > 0 && step < 0.05 ? .linear(duration: 1) : .smooth(duration: 0.55)
+    }
+}
+
 /// A circular progress track. The stroke is inset by half its width so it never
 /// draws outside the view's frame, whatever size the ring is.
 struct ProgressRing: View {
@@ -13,12 +36,13 @@ struct ProgressRing: View {
             Circle()
                 .inset(by: lineWidth / 2)
                 .stroke(.white.opacity(0.18), lineWidth: lineWidth)
-            Circle()
-                .inset(by: lineWidth / 2)
-                .trim(from: 0, to: progress)
-                .stroke(.white, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-                .animation(.linear(duration: 1), value: progress) // glide between once-a-second updates
+            Gliding(value: progress) { shown in
+                Circle()
+                    .inset(by: lineWidth / 2)
+                    .trim(from: 0, to: shown)
+                    .stroke(.white, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+            }
         }
     }
 }
@@ -31,10 +55,11 @@ struct ProgressBar: View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.18))
-                Capsule()
-                    .fill(.white)
-                    .frame(width: max(geo.size.height, geo.size.width * progress))
-                    .animation(.linear(duration: 1), value: progress) // glide between once-a-second updates
+                Gliding(value: progress) { shown in
+                    Capsule()
+                        .fill(.white)
+                        .frame(width: max(geo.size.height, geo.size.width * shown))
+                }
             }
         }
     }
@@ -48,10 +73,12 @@ struct Dial: View {
     var body: some View {
         ZStack {
             Circle().fill(.white.opacity(0.1))
-            Wedge(fraction: remaining)
-                .fill(.white.opacity(0.6))
-                .scaleEffect(0.78) // leaves a band for the tick marks
-                .animation(.linear(duration: 1), value: remaining)
+            // Gliding works on progress (rising), so the wedge's shrink reads as a step forward.
+            Gliding(value: 1 - remaining) { elapsed in
+                Wedge(fraction: 1 - elapsed)
+                    .fill(.white.opacity(0.6))
+                    .scaleEffect(0.78) // leaves a band for the tick marks
+            }
             Canvas { context, size in
                 let center = CGPoint(x: size.width / 2, y: size.height / 2)
                 let radius = min(size.width, size.height) / 2

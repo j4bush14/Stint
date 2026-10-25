@@ -6,6 +6,8 @@ final class FloatingPanel: NSPanel {
     var onEscape: (() -> Bool)?
     /// Focus moved to another window or app.
     var onResignKey: (() -> Void)?
+    /// Esc or ⌘W asked to hide the panel. Without a handler the panel just orders out.
+    var onHide: (() -> Void)?
     /// About to gain or lose focus, which changes how Liquid Glass draws (clear when focused,
     /// frosted when not). Called first, so the change can be animated.
     var willChangeKey: (() -> Void)?
@@ -17,7 +19,11 @@ final class FloatingPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     override func cancelOperation(_ sender: Any?) {
-        if onEscape?() != true { orderOut(nil) }
+        if onEscape?() != true { requestHide() }
+    }
+
+    private func requestHide() {
+        if let onHide { onHide() } else { orderOut(nil) }
     }
 
     override func becomeKey() {
@@ -51,7 +57,7 @@ final class FloatingPanel: NSPanel {
 
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if event.modifierFlags.contains(.command), event.charactersIgnoringModifiers == "w" {
-            orderOut(nil)
+            requestHide()
             return true
         }
         return super.performKeyEquivalent(with: event)

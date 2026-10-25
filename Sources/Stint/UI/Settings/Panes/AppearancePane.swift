@@ -93,7 +93,7 @@ struct AppearancePane: View {
         case .wallpaper:
             "The timer uses clear glass and takes its colors from the part of your wallpaper behind it. Move the timer and the colors follow."
         case .custom:
-            "Pick a focus color; Stint derives a calmer break color from it."
+            "Pick a focus color; Stint derives a calmer break color from it, and keeps both deep enough for white text to read."
         default:
             "Each theme pairs a focus color with a calmer break color."
         }

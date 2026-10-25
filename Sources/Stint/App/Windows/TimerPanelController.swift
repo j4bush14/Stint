@@ -47,6 +47,7 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
         // A time being picked is set when focus leaves the panel, and Esc cancels it.
         let timer = app.timer
         panel.onResignKey = { timer.commitTimeEdit() }
+        panel.onHide = { [weak self] in self?.hide() }
         panel.willChangeKey = { [weak self] in self?.fadeGlassChange() }
         panel.onEscape = {
             guard timer.isEditingTime else { return false }
@@ -78,21 +79,50 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
             .store(in: &cancellables)
     }
 
-    var isVisible: Bool { panel.isVisible }
+    /// Showing, and not on its way out.
+    var isVisible: Bool { panel.isVisible && !isHiding }
+    private var isHiding = false
 
     /// The panel's window (for tests and placement checks).
     var window: NSWindow { panel }
 
+    /// Shows the panel with a short fade in (or stops a fade out that's under way).
     func show() {
+        isHiding = false
         if needsPlacement || !isFullyOnScreen { placeBelowMenuBarIcon() }
+        if !panel.isVisible { panel.alphaValue = 0 }
         panel.orderFrontRegardless()
         panel.makeKey()
         app.wallpaper.refresh()
+        fade(to: 1, duration: 0.18)
     }
 
+    /// Hides the panel with a short fade out.
     func hide() {
         app.timer.commitTimeEdit()
-        panel.orderOut(nil)
+        guard panel.isVisible, !isHiding else { return }
+        isHiding = true
+        fade(to: 0, duration: 0.14) { [weak self] in
+            guard let self, isHiding else { return } // shown again mid-fade
+            panel.orderOut(nil)
+            panel.alphaValue = 1
+            isHiding = false
+        }
+    }
+
+    private func fade(to alpha: CGFloat, duration: TimeInterval, then completion: (@MainActor () -> Void)? = nil) {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+            panel.alphaValue = alpha
+            completion?()
+            return
+        }
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = duration
+            context.timingFunction = CAMediaTimingFunction(name: .easeOut)
+            panel.animator().alphaValue = alpha
+        } completionHandler: {
+            MainActor.assumeIsolated { completion?() }
+        }
     }
 
     /// Makes the panel take keyboard input (for the time picker and title field).

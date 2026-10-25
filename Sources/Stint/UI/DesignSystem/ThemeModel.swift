@@ -24,7 +24,8 @@ final class ThemeModel: ObservableObject {
         case .wallpaper:
             wallpaper.sample?.accent ?? WallpaperSampler.readable(.controlAccentColor)
         default:
-            settings.customColor
+            // Kept dark enough for the panel's white text, however light the color picked.
+            WallpaperSampler.readable(settings.customColor)
         }
     }
 

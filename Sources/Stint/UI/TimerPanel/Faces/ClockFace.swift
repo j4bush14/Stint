@@ -11,6 +11,7 @@ struct ClockFace: View {
 
     @EnvironmentObject private var timer: FocusTimer
     @EnvironmentObject private var settings: AppSettings
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -22,6 +23,13 @@ struct ClockFace: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.96)))
             } else {
                 face
+                    // A gentle breath when focus turns into a break and back.
+                    .keyframeAnimator(initialValue: 1.0, trigger: reduceMotion ? .focus : timer.phase) { content, scale in
+                        content.scaleEffect(scale)
+                    } keyframes: { _ in
+                        SpringKeyframe(1.035, duration: 0.22, spring: .snappy)
+                        SpringKeyframe(1.0, duration: 0.5, spring: .smooth)
+                    }
                     .testTarget("face", value: settings.clockStyle.rawValue)
                     .transition(.opacity)
             }
