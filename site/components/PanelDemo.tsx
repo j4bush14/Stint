@@ -34,13 +34,20 @@ export function PanelDemo() {
   }, [running]);
 
   const skip = () => setTimer(next);
+  /** Back to the full length, stopped, as the app's ↺ button does. */
+  const reset = () => {
+    setRunning(false);
+    setTimer(({ onBreak }) => ({ onBreak, remaining: onBreak ? breakLength : focusLength }));
+  };
+  const started = running || remaining < length;
 
   const time = clock(remaining);
   const progress = 1 - remaining / length;
 
   return (
     <div className="mx-auto flex w-full max-w-[400px] flex-col items-center gap-5">
-      <MenuBar style={style} time={time} progress={progress} running={running} onBreak={onBreak} />
+      <MenuBar style={style} time={time} progress={progress} running={running} started={started}
+               elapsed={length - remaining} onBreak={onBreak} />
 
       <Panel
         style={style}
@@ -49,8 +56,10 @@ export function PanelDemo() {
         remaining={remaining / length}
         running={running}
         onBreak={onBreak}
+        started={started}
         onToggle={() => setRunning(!running)}
         onSkip={skip}
+        onReset={reset}
       />
 
       <div role="tablist" aria-label="Clock style" className="flex rounded-full border border-hairline bg-surface p-1 shadow-sm">
@@ -80,24 +89,55 @@ type FaceProps = {
   onBreak: boolean;
 };
 
-/** A slice of the macOS menu bar with Stint's item, in the same clock style as the panel. */
-function MenuBar({ style, time, progress, running, onBreak }: FaceProps) {
+/** ▶ when ready, ❚❚ when paused, drawn inside the ring or dial or beside the digits. */
+function Mark({ started, size }: { started: boolean; size: number }) {
+  return started ? (
+    <svg width={size} height={size} viewBox="0 0 10 10" fill="currentColor" aria-hidden>
+      <rect x="2.2" y="1.5" width="2" height="7" rx="0.6" /><rect x="5.8" y="1.5" width="2" height="7" rx="0.6" />
+    </svg>
+  ) : (
+    <svg width={size} height={size} viewBox="0 0 10 10" fill="currentColor" aria-hidden><path d="M2.5 1.5v7l6-3.5z" /></svg>
+  );
+}
+
+/**
+ * A slice of the macOS menu bar with Stint's item, as the app draws it: the clock style's
+ * shape, a second hand that sweeps once a minute while running, ▶ or ❚❚ when stopped, and
+ * dimmed time whenever it isn't counting down.
+ */
+function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: FaceProps & { started: boolean; elapsed: number }) {
   const dim = running ? "" : "opacity-50";
+  const hand = (elapsed % 60) * 6; // degrees from 12 o'clock
+  const glyph = onBreak ? (
+    <span aria-hidden>☕︎</span>
+  ) : style === "Ring" || style === "Dial" ? (
+    <span className="relative grid size-[15px] place-items-center">
+      {style === "Ring" ? (
+        <ProgressRing progress={progress} size={15} stroke={2} />
+      ) : (
+        <svg width={15} height={15} viewBox="0 0 16 16" aria-hidden>
+          <circle cx={8} cy={8} r={7} fill="none" stroke="currentColor" strokeWidth={1.25} />
+          <path d={wedgePath(8, 5, 1 - progress)} fill="currentColor" opacity={running ? 1 : 0.45} />
+        </svg>
+      )}
+      {running ? (
+        <svg className="absolute inset-0" width={15} height={15} viewBox="0 0 16 16" aria-hidden>
+          <line x1={8} y1={8} x2={8} y2={style === "Ring" ? 4 : 3.2} strokeLinecap="round" strokeWidth={1.3}
+                stroke={style === "Ring" ? "currentColor" : "rgb(0 0 0 / 0.75)"} transform={`rotate(${hand} 8 8)`}
+                style={{ transition: "transform 0.3s ease-out" }} />
+        </svg>
+      ) : (
+        <span className="absolute inset-0 grid place-items-center"><Mark started={started} size={6} /></span>
+      )}
+    </span>
+  ) : !running ? (
+    <Mark started={started} size={9} />
+  ) : null;
+
   return (
     <div className="flex h-8 w-full items-center justify-end gap-4 rounded-xl bg-black/75 px-4 text-[13px] text-white shadow-md backdrop-blur-xl dark:bg-white/10">
-      <span className="flex items-center gap-1.5" aria-label={`Stint menu bar item, ${time} left`}>
-        {onBreak ? (
-          <span aria-hidden>☕︎</span>
-        ) : style === "Ring" ? (
-          <ProgressRing progress={progress} size={15} stroke={2} />
-        ) : style === "Dial" ? (
-          <svg width={15} height={15} viewBox="0 0 16 16" aria-hidden>
-            <circle cx={8} cy={8} r={7} fill="none" stroke="currentColor" strokeWidth={1.25} />
-            <path d={wedgePath(8, 5, 1 - progress)} fill="currentColor" />
-          </svg>
-        ) : !running ? (
-          <span aria-hidden>❚❚</span>
-        ) : null}
+      <span className="flex items-center gap-1.5" aria-label={`Stint menu bar item, ${time} left${running ? "" : started ? ", paused" : ", ready"}`}>
+        {glyph}
         {style === "Flip" ? (
           <span className={`flex items-center gap-0.5 font-semibold ${dim}`}>
             {time.split(":").map((part, index) => (
@@ -118,8 +158,8 @@ function MenuBar({ style, time, progress, running, onBreak }: FaceProps) {
 
 /** The timer panel: a pane of glass in the focus or break color. */
 function Panel({
-  style, time, progress, remaining, running, onBreak, onToggle, onSkip,
-}: FaceProps & { remaining: number; onToggle: () => void; onSkip: () => void }) {
+  style, time, progress, remaining, running, started, onBreak, onToggle, onSkip, onReset,
+}: FaceProps & { remaining: number; started: boolean; onToggle: () => void; onSkip: () => void; onReset: () => void }) {
   const color = onBreak ? "var(--color-rest)" : "var(--color-focus)";
   return (
     <div
@@ -144,6 +184,17 @@ function Panel({
         </div>
 
         <div className="flex items-center gap-4">
+          <button
+            onClick={onReset}
+            disabled={!started}
+            aria-label="Reset"
+            title="Reset"
+            className="grid size-10 place-items-center rounded-full bg-white/20 transition-all hover:bg-white/30 disabled:pointer-events-none disabled:opacity-0"
+          >
+            <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M4.5 10a5.5 5.5 0 1 0 1.8-4.1" /><path d="M4.2 3.2v3.6h3.6" />
+            </svg>
+          </button>
           <button
             onClick={onToggle}
             aria-label={running ? "Pause" : "Start"}

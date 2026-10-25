@@ -2,6 +2,9 @@ import { Features } from "@/components/Features";
 import { PanelDemo } from "@/components/PanelDemo";
 import { site } from "@/site.config";
 
+/** A file in public/, under the path the site is served from. */
+const asset = (path: string) => `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${path}`;
+
 function AppleLogo() {
   return (
     <svg width="15" height="18" viewBox="0 0 17 20" fill="currentColor" aria-hidden>
@@ -28,7 +31,7 @@ export default function Home() {
         <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
           <a href="#" className="flex items-center gap-2 font-semibold tracking-tight">
             {/* eslint-disable-next-line @next/next/no-img-element -- a static export can't optimize images */}
-            <img src="/stint-icon.png" alt="" width={26} height={26} />
+            <img src={asset("/stint-icon.png")} alt="" width={26} height={26} />
             {site.name}
           </a>
           <div className="flex items-center gap-6 text-sm">
@@ -62,7 +65,8 @@ export default function Home() {
                   View the source →
                 </a>
               </div>
-              <p className="mt-5 text-[13px] text-muted">{site.requirements}</p>
+              <p className="mt-5 text-[13px] text-muted">Version {site.version} · {site.requirements}</p>
+              <p className="mt-1 text-[13px] text-muted">{site.firstLaunch}</p>
             </div>
 
             <PanelDemo />
@@ -98,17 +102,17 @@ export default function Home() {
 
         <section className="mx-auto max-w-6xl px-5 py-24 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element -- a static export can't optimize images */}
-          <img src="/stint-icon.png" alt="" width={88} height={88} className="mx-auto mb-6 drop-shadow-xl" />
+          <img src={asset("/stint-icon.png")} alt="" width={88} height={88} className="mx-auto mb-6 drop-shadow-xl" />
           <h2 className="font-display text-4xl font-semibold tracking-tight">Start your first stint.</h2>
           <p className="mt-3 text-lg text-muted">Free, private, and ready in a minute.</p>
           <DownloadButton className="mt-8" />
-          <p className="mt-4 text-[13px] text-muted">{site.requirements}</p>
+          <p className="mt-4 text-[13px] text-muted">Version {site.version} · {site.requirements}</p>
         </section>
       </main>
 
       <footer className="border-t border-hairline">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-5 py-8 text-[13px] text-muted sm:flex-row">
-          <span>{site.name} is free and open source.</span>
+          <span>{site.name} is free and open source, built with the help of AI tools.</span>
           <div className="flex gap-5">
             <a href={site.repositoryUrl} className="hover:text-foreground">Source</a>
             <a href={`${site.repositoryUrl}/releases`} className="hover:text-foreground">Releases</a>

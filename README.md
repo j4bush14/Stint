@@ -1,70 +1,96 @@
 <p align="center">
-  <img src="site/public/stint-icon.png" width="96" alt="Stint icon">
+  <img src="site/public/stint-icon.png" width="104" alt="Stint app icon">
 </p>
 
 <h1 align="center">Stint</h1>
 
 <p align="center">
-  A calm focus timer for your Mac's menu bar.<br>
-  <a href="../../releases/latest"><b>Download</b></a> · <a href="#getting-started">Getting started</a> · <a href="docs/GUIDE.md">Guide</a>
+  <strong>A calm focus timer for the Mac menu bar.</strong>
 </p>
-
----
-
-Stint is a free, open-source Pomodoro timer for macOS. Work in focused stretches, take real breaks, and see where your time went, all in a pane of Liquid Glass.
 
 <p align="center">
-  <img src="docs/images/timer.png" width="720" alt="Stint's timer window: a progress ring around 25:00, a play button, and the current phase, Focus · 1 of 4">
+  <a href="https://github.com/j4bush14/Stint/actions/workflows/ci.yml"><img src="https://github.com/j4bush14/Stint/actions/workflows/ci.yml/badge.svg" alt="Build status"></a>
+  <a href="https://github.com/j4bush14/Stint/releases/latest"><img src="https://img.shields.io/github/v/release/j4bush14/Stint?label=release" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-27%2B-black?logo=apple" alt="Requires macOS 27 or later">
+  <img src="https://img.shields.io/badge/Apple%20silicon-arm64-555" alt="Apple silicon">
 </p>
 
-- **Lives in your menu bar.** A ring, dial, digits or flip tiles show your session at a glance.
-- **Four clock faces.** Ring, kitchen-timer dial, digital, or a mechanical split-flap.
-- **Lock-In.** No pausing or skipping until the session is done.
-- **Fewer distractions.** Hide chosen apps and block websites while you focus.
-- **History.** Charts by day, week, month and year, with on-device summaries from Apple Intelligence.
-- **Yours.** Themes, a custom color, or glass that matches your wallpaper. Tags can have their own timers.
+<p align="center">
+  <a href="https://j4bush14.github.io/Stint/">Website</a> ·
+  <a href="https://github.com/j4bush14/Stint/releases/latest">Download</a> ·
+  <a href="#usage">Usage</a> ·
+  <a href="docs/GUIDE.md">Guide</a>
+</p>
 
-## Install
+<p align="center">
+  <img src="docs/images/timer.png" width="720" alt="Stint's timer window: a progress ring around 25:00, a play button and the current phase, Focus · 1 of 4">
+</p>
 
-1. Download **Stint-x.y.dmg** from the [latest release](../../releases/latest).
-2. Open it and drag **Stint** into **Applications**.
-3. Open Stint. It appears in the menu bar, not the Dock.
+Stint is a free, open-source Pomodoro timer for macOS. It keeps a gentle rhythm of focused work and real breaks, shows your progress at a glance from the menu bar, and records where your time went, all in a pane of Liquid Glass.
 
-> **macOS stops the first launch?** Open **System Settings › Privacy & Security** and click **Open Anyway** next to Stint. You only need to do this once.
+## Features
 
-Requires macOS 27 on Apple silicon. Summaries need Apple Intelligence turned on (optional).
+- **Menu bar first.** The menu bar item takes the shape of your clock face, with a second hand that sweeps while you work. Click it for the timer; right-click for every command.
+- **Four clock faces.** A progress ring, a kitchen-timer dial, clean digits, or a mechanical split-flap display.
+- **A window that fits anywhere.** Resize it from a slim bar to full screen; the layout adapts, and the corners and edges are easy to grab.
+- **Lock-In.** Once a focus session starts, pausing and skipping stay off until it ends.
+- **Fewer distractions.** Hide chosen apps and redirect chosen websites during focus sessions only.
+- **History.** Daily, weekly, monthly and yearly charts by tag, CSV export, and on-device summaries written by Apple Intelligence.
+- **Your look.** Six themes, a custom color, or clear glass that takes its colors from the wallpaper behind it.
+- **Automation.** Global keyboard shortcuts, AppleScript, `stint://` links and Calendar logging.
 
-## Getting started
+## Requirements
+
+- macOS 27 or later
+- A Mac with Apple silicon
+- Apple Intelligence, optionally, for written summaries
+
+## Installation
+
+1. Download **Stint-&lt;version&gt;.dmg** from the [latest release](https://github.com/j4bush14/Stint/releases/latest).
+2. Open the disk image and drag **Stint** into **Applications**.
+3. Open Stint from Applications. It appears in the menu bar rather than the Dock.
+
+Releases are not notarized, so macOS blocks the first launch. To allow it, open **System Settings › Privacy & Security** and click **Open Anyway** next to Stint. This is needed only once.
+
+## Usage
 
 | To | Do this |
 |---|---|
 | Show or hide the timer | Click Stint in the menu bar |
-| Start, pause, reset or skip | Use the buttons on the timer (↺ resets it), or right-click the menu bar icon |
-| Set a different time | Click the countdown, pick a time, then click anywhere outside |
-| Name a session | Click "Add a title" under the time |
-| Change the look | Right-click the timer › **Clock Style**, or open **Settings** (⌘,) |
-| See your history | Right-click the menu bar icon › **History** |
+| Start, pause, reset or skip | Use the buttons on the timer, or right-click the menu bar item |
+| Set a different length | Click the countdown, choose a time, then click anywhere outside it |
+| Name the session | Click **Add a title** below the time |
+| Change the clock face | Right-click the timer › **Clock Style**, or open **Settings** (⌘,) |
+| Review your history | Right-click the menu bar item › **History** |
 
-## Build from source
+Keyboard shortcuts, AppleScript commands and `stint://` links are listed in the [Guide](docs/GUIDE.md#automation).
 
-You need Xcode 27.
+## Building from source
+
+Stint is a Swift package. Building it requires Xcode 27.
 
 ```bash
-git clone https://github.com/j4bush14/Stint.git && cd Stint
+git clone https://github.com/j4bush14/Stint.git
+cd Stint
 make install
 ```
 
-`make help` lists everything else (run, test, package).
+`make install` builds `Stint.app` and copies it to `/Applications`. Run `make help` for the other tasks, including tests and packaging.
 
-## Learn more
+## Documentation
 
-- [**Guide**](docs/GUIDE.md): shortcuts, AppleScript and links, building and testing, releasing, and how the code is organized
-- [**Website**](site/README.md): the project's site
-
-## How it was made
-
-Stint was designed and built with the help of AI tools, including Anthropic's Claude Code, working alongside its author. Every change was reviewed, tested and checked in the running app.
+- [Guide](docs/GUIDE.md): automation, building and testing, releasing, architecture and design notes
+- [Website](site/README.md): the source of the project site
 
 ## Privacy
 
-No accounts, no analytics, no servers. Your sessions stay in a file on your Mac, and summaries are written by the on-device model. macOS asks before Stint controls a browser (for website blocking) or adds to your calendar.
+Stint has no accounts, analytics or network services. Sessions are stored in a file on your Mac, and summaries are generated by the on-device model. macOS asks for permission before Stint controls a browser (for website blocking) or writes to your calendar.
+
+## Contributing
+
+Bug reports and pull requests are welcome. Please open an [issue](https://github.com/j4bush14/Stint/issues) to discuss larger changes first. `make test` runs the full test suite.
+
+## Acknowledgements
+
+Stint was designed and built with the assistance of AI tools, including Anthropic's Claude Code, working alongside its author. All changes were reviewed, tested and verified in the running app.
