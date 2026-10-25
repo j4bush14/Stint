@@ -50,5 +50,6 @@ if [[ -n "${NOTARY_PROFILE:-}" ]]; then
     xcrun stapler staple "$DMG"
 fi
 
-shasum -a 256 "$ZIP" "$DMG" | tee "$DIST/SHA256SUMS.txt"
+# Bare file names, so `shasum -c SHA256SUMS.txt` works next to the downloads.
+(cd "$DIST" && shasum -a 256 "$(basename "$ZIP")" "$(basename "$DMG")") | tee "$DIST/SHA256SUMS.txt"
 echo "Packaged Stint $VERSION into $DIST/"
