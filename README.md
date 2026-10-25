@@ -61,6 +61,10 @@ make install
 - [**Guide**](docs/GUIDE.md): shortcuts, AppleScript and links, building and testing, releasing, and how the code is organized
 - [**Website**](site/README.md): the project's site
 
+## How it was made
+
+Stint was designed and built with the help of AI tools, including Anthropic's Claude Code, working alongside its author. Every change was reviewed, tested and checked in the running app.
+
 ## Privacy
 
 No accounts, no analytics, no servers. Your sessions stay in a file on your Mac, and summaries are written by the on-device model. macOS asks before Stint controls a browser (for website blocking) or adds to your calendar.
