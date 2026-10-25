@@ -47,6 +47,7 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
         // A time being picked is set when focus leaves the panel, and Esc cancels it.
         let timer = app.timer
         panel.onResignKey = { timer.commitTimeEdit() }
+        panel.willChangeKey = { [weak self] in self?.fadeGlassChange() }
         panel.onEscape = {
             guard timer.isEditingTime else { return false }
             timer.cancelTimeEdit()
@@ -143,6 +144,18 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
     }
 
     /// Rounded corners for the larger layouts, a full capsule for the mini bar.
+    /// Liquid Glass switches between frosted (unfocused) and clear (focused) in one frame;
+    /// a cross-fade on its layer turns that into a smooth change.
+    private func fadeGlassChange() {
+        guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else { return }
+        glass.wantsLayer = true
+        let fade = CATransition()
+        fade.type = .fade
+        fade.duration = 0.35
+        fade.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        glass.layer?.add(fade, forKey: "focusChange")
+    }
+
     private func updateCornerRadius() {
         glass.cornerRadius = min(Self.maxCornerRadius, panel.frame.height / 2)
         grips.cornerRadius = glass.cornerRadius

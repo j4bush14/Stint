@@ -6,6 +6,9 @@ final class FloatingPanel: NSPanel {
     var onEscape: (() -> Bool)?
     /// Focus moved to another window or app.
     var onResignKey: (() -> Void)?
+    /// About to gain or lose focus, which changes how Liquid Glass draws (clear when focused,
+    /// frosted when not). Called first, so the change can be animated.
+    var willChangeKey: (() -> Void)?
     /// The menu a right-click (or Control-click) anywhere on the panel opens, built as it opens.
     var makeContextMenu: (() -> NSMenu)?
     var menuPresenter = MenuPresenter.system
@@ -17,7 +20,13 @@ final class FloatingPanel: NSPanel {
         if onEscape?() != true { orderOut(nil) }
     }
 
+    override func becomeKey() {
+        willChangeKey?()
+        super.becomeKey()
+    }
+
     override func resignKey() {
+        willChangeKey?()
         super.resignKey()
         onResignKey?()
     }
