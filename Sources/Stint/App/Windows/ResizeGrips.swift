@@ -14,7 +14,7 @@ struct ResizeEdges: OptionSet, Hashable {
 /// rounded corners, show the macOS resize cursors, and keep the opposite edge in place.
 final class ResizeGrips: NSView {
     /// How far in from the edge a grip reaches.
-    static let band: CGFloat = 7
+    nonisolated static let band: CGFloat = 7
 
     /// The panel's corner radius, so the corner grips follow the visible curve.
     var cornerRadius: CGFloat = 34
@@ -83,7 +83,7 @@ final class ResizeGrips: NSView {
 
     /// The edges a grip at `point` resizes, or none. Along the straight sides it's a band
     /// `band` wide; in the corners, a band just inside the rounded edge you can see.
-    static func edges(at point: NSPoint, in size: NSSize, cornerRadius: CGFloat, band: CGFloat = band) -> ResizeEdges {
+    nonisolated static func edges(at point: NSPoint, in size: NSSize, cornerRadius: CGFloat, band: CGFloat = band) -> ResizeEdges {
         guard NSRect(origin: .zero, size: size).contains(point) else { return [] }
         let radius = min(max(cornerRadius, band), min(size.width, size.height) / 2)
         let centerX: CGFloat? = point.x < radius ? radius : point.x > size.width - radius ? size.width - radius : nil
@@ -101,7 +101,7 @@ final class ResizeGrips: NSView {
 
     /// `frame` resized by dragging `edges` by `delta`, within `min`…`max`, keeping the
     /// opposite edges where they were.
-    static func resized(_ frame: NSRect, edges: ResizeEdges, by delta: NSSize, min: NSSize, max: NSSize) -> NSRect {
+    nonisolated static func resized(_ frame: NSRect, edges: ResizeEdges, by delta: NSSize, min: NSSize, max: NSSize) -> NSRect {
         func clampWidth(_ w: CGFloat) -> CGFloat { Swift.min(Swift.max(w, min.width), max.width) }
         func clampHeight(_ h: CGFloat) -> CGFloat { Swift.min(Swift.max(h, min.height), max.height) }
         var result = frame
