@@ -13,6 +13,7 @@ struct TimePicker: View {
     @FocusState private var isFocused: Bool
     @State private var selected: Unit = .minutes
     @State private var dragSteps = 0
+    @Environment(\.panelInk) private var ink
 
     enum Unit: CaseIterable, Identifiable {
         case hours, minutes, seconds
@@ -45,8 +46,9 @@ struct TimePicker: View {
                 ForEach(units) { unit in
                     if unit != units.first {
                         Text(":")
-                            .font(.system(size: fontSize, weight: .light, design: .rounded))
-                            .opacity(0.6)
+                            .font(.system(size: fontSize, weight: ink ? .heavy : .light, design: .rounded))
+                            .opacity(ink ? 1 : 0.6)
+                            .shadow(color: ink ? Ink.line : .clear, radius: 0, x: fontSize * 0.035, y: fontSize * 0.035)
                     }
                     column(unit)
                 }
@@ -77,15 +79,24 @@ struct TimePicker: View {
         VStack(spacing: 0) {
             if !isCompact { arrow("chevron.up", unit: unit, by: 1) }
             Text(String(format: "%02d", value(of: unit)))
-                .font(.system(size: fontSize, weight: .light, design: .rounded).monospacedDigit())
+                .font(.system(size: fontSize, weight: ink ? .heavy : .light, design: .rounded).monospacedDigit())
+                // Ink: the same chunky digits on a hard shadow as the clock.
+                .shadow(color: ink ? Ink.line : .clear, radius: 0, x: fontSize * 0.035, y: fontSize * 0.035)
                 .lineLimit(1)
                 .fixedSize() // never truncate while other views animate around it
                 .contentTransition(.numericText())
                 .animation(.snappy(duration: 0.2), value: value(of: unit))
                 .padding(.horizontal, fontSize * 0.08)
                 .background {
-                    RoundedRectangle(cornerRadius: fontSize * 0.18, style: .continuous)
-                        .fill(.white.opacity(selected == unit && isFocused ? 0.14 : 0))
+                    let isSelected = selected == unit && isFocused
+                    let shape = RoundedRectangle(cornerRadius: fontSize * 0.18, style: .continuous)
+                    if ink {
+                        // The selected column is outlined in ink.
+                        shape.fill(isSelected ? Ink.fill : .clear)
+                            .overlay(shape.strokeBorder(Ink.line.opacity(isSelected ? 1 : 0), lineWidth: Ink.lineWidth))
+                    } else {
+                        shape.fill(.white.opacity(isSelected ? 0.14 : 0))
+                    }
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { selected = unit }

@@ -23,7 +23,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/timer.png" width="720" alt="Stint's timer window: a progress ring around 25:00, a play button and the current phase, Focus · 1 of 4">
+  <img src="docs/images/timer.png" width="720" alt="Stint's timer window in the Ink style: an ink-outlined progress ring around 18:42 and the session title, Draft chapter 3, beside reset, pause and skip buttons and the current phase, Focus · 1 of 4">
 </p>
 
 Stint is a free, open-source Pomodoro timer for macOS. It keeps a gentle rhythm of focused work and real breaks, shows your progress at a glance from the menu bar, and records where your time went, in a flat, hand-inked panel or a pane of Liquid Glass.
