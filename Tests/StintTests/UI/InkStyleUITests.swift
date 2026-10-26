@@ -16,7 +16,7 @@ extension UITests {
             return ui
         }
 
-        @Test("Choosing Ink in Settings turns the panel to Ink, and Glass turns it back")
+        @Test("Ink is the default; Glass in Settings switches the panel, and Ink switches it back")
         func picker() {
             let ui = UIHarness(size: CGSize(width: 900, height: 960)) {
                 HStack(spacing: 0) {
@@ -24,17 +24,17 @@ extension UITests {
                     AppearancePane().frame(width: 580)
                 }
             }
-            #expect(ui.value("panel.style") == "glass")
-
-            // The segmented control sits at the trailing end of its row: Glass, then Ink.
-            #expect(ui.click("appearance.panelStyle", at: UnitPoint(x: 0.95, y: 0.5)))
-            #expect(ui.settings.panelStyle == .ink)
-            #expect(ui.value("appearance.panelStyle") == "ink")
             #expect(ui.value("panel.style") == "ink")
 
+            // The segmented control sits at the trailing end of its row: Glass, then Ink.
             #expect(ui.click("appearance.panelStyle", at: UnitPoint(x: 0.84, y: 0.5)))
             #expect(ui.settings.panelStyle == .glass)
+            #expect(ui.value("appearance.panelStyle") == "glass")
             #expect(ui.value("panel.style") == "glass")
+
+            #expect(ui.click("appearance.panelStyle", at: UnitPoint(x: 0.95, y: 0.5)))
+            #expect(ui.settings.panelStyle == .ink)
+            #expect(ui.value("panel.style") == "ink")
         }
 
         @Test("Play, pause, reset and skip work in Ink", arguments: ClockStyle.allCases)

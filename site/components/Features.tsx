@@ -41,7 +41,7 @@ const features: Feature[] = [
   },
   {
     title: "Made for your desk",
-    body: "Themes, a color of your own, or glass that takes its colors from your wallpaper. Tags can carry their own timer lengths.",
+    body: "An inked panel like this page, or Liquid Glass. Six themes, a color of your own, or colors from your wallpaper. Tags can carry their own timer lengths.",
     doodle: <PaletteDoodle size={46} />,
     tint: "var(--focus)",
     tilt: "rotate-[0.6deg]",

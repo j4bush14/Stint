@@ -2,30 +2,52 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleDevelopmentRegion</key><string>en</string>
-    <key>CFBundleDisplayName</key><string>Stint</string>
-    <key>CFBundleName</key><string>Stint</string>
-    <key>CFBundleExecutable</key><string>Stint</string>
-    <key>CFBundleIdentifier</key><string>app.stint.Stint</string>
-    <key>CFBundleIconFile</key><string>AppIcon</string>
-    <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>2.0</string>
-    <key>CFBundleVersion</key><string>2</string>
-    <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
-    <key>CFBundleURLTypes</key>
-    <array>
-        <dict>
-            <key>CFBundleURLName</key><string>app.stint.url</string>
-            <key>CFBundleURLSchemes</key><array><string>stint</string></array>
-        </dict>
-    </array>
-    <key>LSApplicationCategoryType</key><string>public.app-category.productivity</string>
-    <key>LSMinimumSystemVersion</key><string>27.0</string>
-    <key>LSUIElement</key><true/>
-    <key>NSHighResolutionCapable</key><true/>
-    <key>NSAppleScriptEnabled</key><true/>
-    <key>OSAScriptingDefinition</key><string>Stint.sdef</string>
-    <key>NSAppleEventsUsageDescription</key><string>Stint needs access to your browser to block URLs on your blocklist.</string>
-    <key>NSCalendarsFullAccessUsageDescription</key><string>Stint writes completed sessions to your calendar.</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
+	<string>Stint</string>
+	<key>CFBundleExecutable</key>
+	<string>Stint</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>app.stint.Stint</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>Stint</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>2.1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>app.stint.url</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>stint</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>2</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.productivity</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>27.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Stint needs access to your browser to block URLs on your blocklist.</string>
+	<key>NSAppleScriptEnabled</key>
+	<true/>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Stint writes completed sessions to your calendar.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>OSAScriptingDefinition</key>
+	<string>Stint.sdef</string>
 </dict>
 </plist>

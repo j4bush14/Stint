@@ -26,7 +26,7 @@
   <img src="docs/images/timer.png" width="720" alt="Stint's timer window: a progress ring around 25:00, a play button and the current phase, Focus · 1 of 4">
 </p>
 
-Stint is a free, open-source Pomodoro timer for macOS. It keeps a gentle rhythm of focused work and real breaks, shows your progress at a glance from the menu bar, and records where your time went, all in a pane of Liquid Glass.
+Stint is a free, open-source Pomodoro timer for macOS. It keeps a gentle rhythm of focused work and real breaks, shows your progress at a glance from the menu bar, and records where your time went, in a flat, hand-inked panel or a pane of Liquid Glass.
 
 ## Features
 
@@ -36,7 +36,7 @@ Stint is a free, open-source Pomodoro timer for macOS. It keeps a gentle rhythm 
 - **Lock-In.** Once a focus session starts, pausing and skipping stay off until it ends.
 - **Fewer distractions.** Hide chosen apps and redirect chosen websites during focus sessions only.
 - **History.** Daily, weekly, monthly and yearly charts by tag, CSV export, and on-device summaries written by Apple Intelligence.
-- **Your look.** Six themes, a custom color, or clear glass that takes its colors from the wallpaper behind it.
+- **Your look.** An ink-and-paper panel or Liquid Glass, in one of six themes, a custom color, or colors taken from your wallpaper.
 - **Automation.** Global keyboard shortcuts, AppleScript, `stint://` links and Calendar logging.
 
 ## Requirements

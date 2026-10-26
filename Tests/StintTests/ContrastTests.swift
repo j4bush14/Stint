@@ -94,6 +94,7 @@ extension ContrastTests {
     func inkWash() {
         let env = TestEnvironment()
         let theme = ThemeModel(settings: env.settings, wallpaper: WallpaperColors(settings: env.settings))
+        env.settings.panelStyle = .glass
         #expect(theme.washColors(for: .focus).top != theme.color(for: .focus))
 
         env.settings.panelStyle = .ink
