@@ -71,6 +71,7 @@ struct TimerPanelView: View {
         .allowsWindowActivationEvents(true)
         .background(PanelWash(phase: timer.phase))
         .environment(\.panelInk, theme.isInk)
+        .testTarget("panel.style", value: theme.isInk ? "ink" : "glass")
         .foregroundStyle(.white)
         .onHover { isHovering = $0 }
         .animation(.smooth(duration: 0.3), value: timer.hasStarted)
