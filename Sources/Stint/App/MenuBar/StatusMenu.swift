@@ -52,6 +52,7 @@ enum StatusMenu {
 
         menu.addItem(tagItem(timer: timer, store: store, enabled: !locked))
         menu.addItem(PanelMenu.clockStyleItem(settings: settings))
+        menu.addItem(PanelMenu.panelStyleItem(settings: settings))
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("Show Timer", symbol: "macwindow", shortcut: shortcut(.togglePanel)) { actions.showPanel() })
         menu.addItem(ClosureMenuItem("History", symbol: "chart.bar.xaxis") { actions.showHistory() })

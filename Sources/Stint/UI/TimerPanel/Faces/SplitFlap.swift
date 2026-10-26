@@ -31,8 +31,19 @@ struct SplitFlapDigit: View {
     /// How far the flap has turned: 0 = just released, 180 = landed.
     @State private var angle: Double = 180
 
+    @Environment(\.panelInk) private var ink
+
     var body: some View {
         FlapStack(old: previous ?? character, new: character, angle: angle, size: size, tile: tile)
+            .background {
+                // Ink: the tile sits on ink, so the hinge reads as a dark line, over a hard shadow.
+                if ink {
+                    let tile = RoundedRectangle(cornerRadius: size.width * 0.14, style: .continuous)
+                    tile.fill(Ink.line)
+                        .offset(x: size.width * 0.06, y: size.width * 0.06)
+                    tile.fill(Ink.line)
+                }
+            }
             .onChange(of: character) { oldValue, _ in flip(from: oldValue) }
     }
 
@@ -57,6 +68,7 @@ private struct FlapStack: View, Animatable {
     nonisolated var angle: Double
     let size: CGSize
     let tile: NSColor
+    @Environment(\.panelInk) private var ink
 
     nonisolated var animatableData: Double {
         get { angle }
@@ -95,13 +107,15 @@ private struct FlapStack: View, Animatable {
         // Lit from above: the bottom half-card is a touch darker.
         let fill = top ? tile : (tile.shadow(withLevel: 0.1) ?? tile)
         return Text(String(digit))
-            .font(.system(size: size.height * 0.78, weight: .semibold, design: .rounded).monospacedDigit())
+            .font(.system(size: size.height * (ink ? 0.68 : 0.78), weight: ink ? .heavy : .semibold, design: .rounded).monospacedDigit())
+            .foregroundStyle(ink ? Ink.line : .white)
             .frame(width: size.width, height: size.height)
             // Keep this half; the full-height frame keeps the digit centered on the hinge.
             .frame(width: size.width, height: (size.height - gap) / 2, alignment: top ? .top : .bottom)
             .clipped()
             .background(shape.fill(Color(nsColor: fill)))
             .overlay(shape.fill(.black.opacity(0.55 * min(1, shade))))
+            .overlay { if ink { shape.strokeBorder(Ink.line, lineWidth: max(1.5, size.width * 0.05)) } }
             .frame(width: size.width, height: size.height, alignment: top ? .top : .bottom)
     }
 }

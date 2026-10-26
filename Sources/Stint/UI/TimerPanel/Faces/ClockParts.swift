@@ -30,8 +30,17 @@ struct Gliding<Content: View>: View {
 struct ProgressRing: View {
     let progress: Double
     let lineWidth: CGFloat
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
+        if ink {
+            InkRing(progress: progress, lineWidth: lineWidth)
+        } else {
+            glass
+        }
+    }
+
+    private var glass: some View {
         ZStack {
             Circle()
                 .inset(by: lineWidth / 2)
@@ -50,8 +59,17 @@ struct ProgressRing: View {
 /// A thin horizontal progress bar.
 struct ProgressBar: View {
     let progress: Double
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
+        if ink {
+            InkProgressBar(progress: progress)
+        } else {
+            glass
+        }
+    }
+
+    private var glass: some View {
         GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Capsule().fill(.white.opacity(0.18))
@@ -69,8 +87,17 @@ struct ProgressBar: View {
 struct Dial: View {
     /// Fraction of the phase still to go, 0…1.
     let remaining: Double
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
+        if ink {
+            InkDial(remaining: remaining)
+        } else {
+            glass
+        }
+    }
+
+    private var glass: some View {
         ZStack {
             Circle().fill(.white.opacity(0.1))
             // Gliding works on progress (rising), so the wedge's shrink reads as a step forward.
@@ -128,15 +155,24 @@ struct Wedge: Shape {
 /// Small pips, one per focus session in the cycle.
 struct CyclePips: View {
     @ObservedObject var timer: FocusTimer
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: ink ? 6 : 5) {
             ForEach(0..<timer.cycle, id: \.self) { index in
                 let done = index < timer.completedFocus
                 let current = timer.phase == .focus && index == timer.completedFocus
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(.white.opacity(done ? 1 : (current ? 0.6 : 0.25)))
-                    .frame(width: current ? 14 : 6, height: 4)
+                if ink {
+                    // Outlined: filled with paper once done, half-filled for the one under way.
+                    Ink.capsule
+                        .fill(done ? Ink.paper : (current ? Ink.paper.opacity(0.55) : Ink.line.opacity(0.2)))
+                        .overlay(Ink.capsule.strokeBorder(Ink.line, lineWidth: 1.5))
+                        .frame(width: current ? 18 : 8, height: 8)
+                } else {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(.white.opacity(done ? 1 : (current ? 0.6 : 0.25)))
+                        .frame(width: current ? 14 : 6, height: 4)
+                }
             }
         }
         .animation(.smooth, value: timer.completedFocus)

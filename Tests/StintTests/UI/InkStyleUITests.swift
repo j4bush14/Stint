@@ -71,6 +71,28 @@ extension UITests {
             #expect(ui.actions.last == "hidePanel")
         }
 
+        @Test("Panel Style in the panel's menu switches between Glass and Ink, with the current one checked")
+        func menuSwitch() throws {
+            // Right-click opens the same menu as ⋯, which only shows while the pointer is over the panel.
+            let size = TimerPanelView.defaultSize
+            let ui = UIHarness(size: size) { TimerPanelView() }
+            let spot = CGPoint(x: 6, y: size.height / 2)
+
+            let titles = ui.chooseContextMenuItem(at: spot, path: ["Panel Style", "Glass"])
+            #expect(titles.contains("Panel Style"))
+            #expect(ui.settings.panelStyle == .glass)
+            #expect(ui.value("panel.style") == "glass")
+
+            ui.chooseContextMenuItem(at: spot, path: ["Panel Style", "Ink"])
+            #expect(ui.settings.panelStyle == .ink)
+            #expect(ui.value("panel.style") == "ink")
+
+            let menu = PanelMenu.make(timer: ui.timer, settings: ui.settings, actions: ui.app.actions, onRename: {})
+            let styles = try #require(menu.items.first { $0.title == "Panel Style" }?.submenu)
+            #expect(styles.items.map(\.title) == ["Glass", "Ink"])
+            #expect(styles.items.filter { $0.state == .on }.map(\.title) == ["Ink"])
+        }
+
         @Test("The tag chip opens its menu in Ink")
         func tagMenu() throws {
             let ui = inkPanel()

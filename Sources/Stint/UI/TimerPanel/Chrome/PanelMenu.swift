@@ -19,6 +19,7 @@ enum PanelMenu {
         menu.addItem(newCycle)
         menu.addItem(.separator())
         menu.addItem(clockStyleItem(settings: settings))
+        menu.addItem(panelStyleItem(settings: settings))
         menu.addItem(windowSizeItem(actions: actions))
         menu.addItem(.separator())
         menu.addItem(ClosureMenuItem("History", symbol: "chart.bar.xaxis") { actions.showHistory() })
@@ -40,6 +41,23 @@ enum PanelMenu {
                 withAnimation(.smooth) { settings.clockStyle = style }
             }
             choice.state = settings.clockStyle == style ? .on : .off
+            submenu.addItem(choice)
+        }
+        item.submenu = submenu
+        return item
+    }
+
+    /// "Panel Style ▸ Glass / Ink", with the current one checked. The menu bar's menu offers
+    /// the same submenu.
+    static func panelStyleItem(settings: AppSettings) -> NSMenuItem {
+        let item = NSMenuItem(title: "Panel Style", action: nil, keyEquivalent: "")
+        item.image = NSImage(systemSymbolName: "paintbrush.pointed", accessibilityDescription: nil)
+        let submenu = NSMenu()
+        for style in PanelStyle.allCases {
+            let choice = ClosureMenuItem(style.label) {
+                withAnimation(.smooth) { settings.panelStyle = style }
+            }
+            choice.state = settings.panelStyle == style ? .on : .off
             submenu.addItem(choice)
         }
         item.submenu = submenu

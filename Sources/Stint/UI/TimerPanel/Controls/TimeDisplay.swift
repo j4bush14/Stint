@@ -5,10 +5,13 @@ struct CountdownText: View {
     let remaining: TimeInterval
     let size: CGFloat
     var weight: Font.Weight = .light
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
         Text(TimeFormat.clock(remaining))
-            .font(.system(size: size, weight: weight, design: .rounded).monospacedDigit())
+            .font(.system(size: size, weight: ink ? .heavy : weight, design: .rounded).monospacedDigit())
+            // Ink: chunky digits on a hard shadow, like the website's.
+            .shadow(color: ink ? Ink.line : .clear, radius: 0, x: size * 0.035, y: size * 0.035)
             .lineLimit(1)
             .minimumScaleFactor(0.5)
             .contentTransition(.numericText(countsDown: true))

@@ -1,10 +1,14 @@
+import AppKit
 import SwiftUI
 
 /// The Ink panel style's look, matching the website: flat color, ink outlines and hard
 /// offset shadows, like cut-out clip art.
 enum Ink {
     static let line = Color(red: 0x1D / 255, green: 0x1B / 255, blue: 0x19 / 255)
-    static let paper = Color(red: 0xFB / 255, green: 0xF5 / 255, blue: 0xE9 / 255)
+    static let paper = Color(nsColor: paperNS)
+    static let paperNS = NSColor(srgbRed: 0xFB / 255, green: 0xF5 / 255, blue: 0xE9 / 255, alpha: 1)
+    static let mustard = Color(red: 0xF4 / 255, green: 0xBD / 255, blue: 0x3E / 255)
+    static let tomato = Color(red: 0xEF / 255, green: 0x5A / 255, blue: 0x3C / 255)
     /// A darker patch of the panel's own color, behind outlined buttons and chips.
     static let fill = Color.black.opacity(0.16)
     static let lineWidth: CGFloat = 2.5

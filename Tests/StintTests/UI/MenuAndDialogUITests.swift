@@ -22,7 +22,7 @@ extension UITests {
         func lists() {
             let ui = header()
             let titles = ui.chooseMenuItem("panel.menu", path: [])
-            #expect(titles == ["Rename Session…", "Start New Cycle", "Clock Style", "Window Size",
+            #expect(titles == ["Rename Session…", "Start New Cycle", "Clock Style", "Panel Style", "Window Size",
                                "History", "Settings…", "Hide Window", "Quit Stint"])
         }
 

@@ -70,7 +70,7 @@ struct ClockFace: View {
         VStack(spacing: size * 0.05) {
             TimeButton { CountdownText(remaining: timer.remaining, size: size * 0.3, weight: .regular) }
             ProgressBar(progress: timer.progress)
-                .frame(width: size * 0.78, height: max(4, size * 0.022))
+                .frame(width: size * 0.78, height: theme.isInk ? max(10, size * 0.045) : max(4, size * 0.022))
             title(width: size * 0.8)
             CyclePips(timer: timer)
         }
@@ -85,8 +85,10 @@ struct ClockFace: View {
         }
     }
 
-    /// Flip tiles are opaque (a flap has to hide the digit behind it), tinted to the theme.
+    /// Flip tiles are opaque (a flap has to hide the digit behind it), tinted to the theme,
+    /// or paper in the Ink style.
     private var tileColor: NSColor {
+        if theme.isInk { return Ink.paperNS }
         let base = theme.nsColor(for: timer.phase)
         return base.blended(withFraction: 0.18, of: .white) ?? base
     }
@@ -99,8 +101,9 @@ struct ClockFace: View {
                 HStack(spacing: size * 0.02) {
                     SplitFlapGroup(text: parts.leading, digitSize: digitSize, tile: tileColor)
                     Text(":")
-                        .font(.system(size: size * 0.14, weight: .semibold, design: .rounded))
-                        .opacity(0.6)
+                        .font(.system(size: size * 0.14, weight: theme.isInk ? .heavy : .semibold, design: .rounded))
+                        .opacity(theme.isInk ? 1 : 0.6)
+                        .shadow(color: theme.isInk ? Ink.line : .clear, radius: 0, x: size * 0.006, y: size * 0.006)
                     SplitFlapGroup(text: parts.trailing, digitSize: digitSize, tile: tileColor)
                 }
                 .padding(.vertical, 4)
