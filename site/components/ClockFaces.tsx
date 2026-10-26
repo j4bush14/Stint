@@ -88,7 +88,7 @@ export function Dial({ remaining, size }: { remaining: number; size: number }) {
 function FlapHalf({ digits, half, className = "" }: { digits: string; half: "top" | "bottom"; className?: string }) {
   return (
     <div
-      className={`absolute inset-x-0 h-1/2 overflow-hidden bg-[#26303b] ${half === "top" ? "top-0 rounded-t-[inherit]" : "bottom-0 rounded-b-[inherit]"} ${className}`}
+      className={`absolute inset-x-0 h-1/2 overflow-hidden bg-[#1d1b19] ${half === "top" ? "top-0 rounded-t-[inherit]" : "bottom-0 rounded-b-[inherit]"} ${className}`}
       style={{ backfaceVisibility: "hidden" }}
     >
       <div className={`absolute inset-x-0 flex h-[200%] items-center justify-center ${half === "top" ? "top-0" : "bottom-0"}`}>
@@ -107,7 +107,7 @@ export function SplitFlap({ value, className = "" }: { value: string; className?
   }
   const { current, previous, flips } = state;
   return (
-    <div className={`relative rounded-[14%] text-white tabular-nums shadow-lg [perspective:400px] ${className}`} aria-label={value}>
+    <div className={`relative rounded-[14%] border-[3px] border-[#1d1b19] text-white tabular-nums shadow-[4px_4px_0_#1d1b19] [perspective:400px] ${className}`} aria-label={value}>
       <FlapHalf digits={current} half="top" />
       <FlapHalf digits={flips > 0 ? previous : current} half="bottom" />
       {flips > 0 && (

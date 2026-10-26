@@ -9,8 +9,6 @@ const nextConfig: NextConfig = {
   // static host (GitHub Pages, Vercel, Netlify…) can serve.
   output: "export",
   basePath,
-  // Plain <img> tags aren't rewritten for basePath, so the page builds those paths itself.
-  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   turbopack: {
     rules: {
       "*.css": {

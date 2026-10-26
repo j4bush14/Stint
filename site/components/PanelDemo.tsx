@@ -62,15 +62,15 @@ export function PanelDemo() {
         onReset={reset}
       />
 
-      <div role="tablist" aria-label="Clock style" className="flex rounded-full border border-hairline bg-surface p-1 shadow-sm">
+      <div role="tablist" aria-label="Clock style" className="ink-card flex gap-1 rounded-full bg-paper p-1.5 [box-shadow:3px_3px_0_var(--ink)]">
         {styles.map((option) => (
           <button
             key={option}
             role="tab"
             aria-selected={style === option}
             onClick={() => setStyle(option)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              style === option ? "bg-foreground text-background" : "text-muted hover:text-foreground"
+            className={`rounded-full px-4 py-1.5 font-display text-sm font-semibold transition-colors ${
+              style === option ? "bg-ink text-paper" : "text-muted hover:bg-paper-2 hover:text-ink"
             }`}
           >
             {option}
@@ -123,7 +123,7 @@ function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: 
       {running ? (
         <svg className="absolute inset-0" width={15} height={15} viewBox="0 0 16 16" aria-hidden>
           <line x1={8} y1={8} x2={8} y2={style === "Ring" ? 4 : 3.2} strokeLinecap="round" strokeWidth={1.3}
-                stroke={style === "Ring" ? "currentColor" : "rgb(0 0 0 / 0.75)"} transform={`rotate(${hand} 8 8)`}
+                stroke={style === "Ring" ? "currentColor" : "var(--paper-2)"} transform={`rotate(${hand} 8 8)`}
                 style={{ transition: "transform 0.3s ease-out" }} />
         </svg>
       ) : (
@@ -135,7 +135,7 @@ function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: 
   ) : null;
 
   return (
-    <div className="flex h-8 w-full items-center justify-end gap-4 rounded-xl bg-black/75 px-4 text-[13px] text-white shadow-md backdrop-blur-xl dark:bg-white/10">
+    <div className="ink-card flex h-10 w-full items-center justify-end gap-4 rounded-2xl bg-paper-2 px-4 text-[13px] font-medium text-ink [box-shadow:3px_3px_0_var(--ink)]">
       <span className="flex items-center gap-1.5" aria-label={`Stint menu bar item, ${time} left${running ? "" : started ? ", paused" : ", ready"}`}>
         {glyph}
         {style === "Flip" ? (
@@ -143,7 +143,7 @@ function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: 
             {time.split(":").map((part, index) => (
               <span key={index} className="flex items-center gap-0.5">
                 {index > 0 && <span>:</span>}
-                <span className="rounded-[4px] bg-white px-1 leading-[18px] text-black tabular-nums">{part}</span>
+                <span className="rounded-[4px] bg-ink px-1 leading-[18px] text-paper tabular-nums">{part}</span>
               </span>
             ))}
           </span>
@@ -151,7 +151,7 @@ function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: 
           <RollingDigits text={time} className={dim} />
         )}
       </span>
-      <span className="text-white/80">Wed 9:41 AM</span>
+      <span className="text-muted">Wed 9:41 AM</span>
     </div>
   );
 }
@@ -160,23 +160,23 @@ function MenuBar({ style, time, progress, running, started, elapsed, onBreak }: 
 function Panel({
   style, time, progress, remaining, running, started, onBreak, onToggle, onSkip, onReset,
 }: FaceProps & { remaining: number; started: boolean; onToggle: () => void; onSkip: () => void; onReset: () => void }) {
-  const color = onBreak ? "var(--color-rest)" : "var(--color-focus)";
+  // Flat colors, like the rest of the page: teal while focusing, blue on a break.
+  const color = onBreak ? "var(--color-focus)" : "var(--color-teal)";
   return (
     <div
-      className="relative aspect-[320/404] w-full max-w-[340px] overflow-hidden rounded-[34px] text-white shadow-2xl ring-1 ring-white/25 transition-colors duration-700"
-      style={{ background: `linear-gradient(180deg, color-mix(in srgb, ${color} 88%, white), ${color})` }}
+      className="relative aspect-[320/404] w-full max-w-[340px] overflow-hidden rounded-[34px] border-[3px] border-ink text-white transition-colors duration-700 [box-shadow:7px_7px_0_var(--ink)]"
+      style={{ background: color }}
     >
       {/* Glass highlight. */}
-      <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-b from-white/25 via-transparent to-black/10" />
 
       <div className="relative flex h-full flex-col items-center px-5 pt-4 pb-5">
         <div className="flex w-full items-center justify-between">
-          <span className="grid size-6 place-items-center rounded-full bg-white/20 text-[11px] font-bold" aria-hidden>✕</span>
+          <span className="grid size-6 place-items-center rounded-full border-2 border-[#1d1b19] bg-white/25 text-[11px] font-bold" aria-hidden>✕</span>
           <span className="text-[13px] font-semibold">
             {onBreak ? "Short Break" : "Focus"}
             {!onBreak && <span className="opacity-65"> · 1 of 4</span>}
           </span>
-          <span className="grid size-6 place-items-center rounded-full bg-white/20 text-[13px] font-bold leading-none" aria-hidden>⋯</span>
+          <span className="grid size-6 place-items-center rounded-full border-2 border-[#1d1b19] bg-white/25 text-[13px] font-bold leading-none" aria-hidden>⋯</span>
         </div>
 
         <div className="flex flex-1 items-center justify-center">
@@ -189,7 +189,7 @@ function Panel({
             disabled={!started}
             aria-label="Reset"
             title="Reset"
-            className="grid size-10 place-items-center rounded-full bg-white/20 transition-all hover:bg-white/30 disabled:pointer-events-none disabled:opacity-0"
+            className="grid size-10 place-items-center rounded-full border-[2.5px] border-[#1d1b19] bg-white/25 transition-all hover:bg-white/40 disabled:pointer-events-none disabled:opacity-0"
           >
             <svg width="17" height="17" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M4.5 10a5.5 5.5 0 1 0 1.8-4.1" /><path d="M4.2 3.2v3.6h3.6" />
@@ -198,7 +198,7 @@ function Panel({
           <button
             onClick={onToggle}
             aria-label={running ? "Pause" : "Start"}
-            className="grid size-14 place-items-center rounded-full bg-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+            className="grid size-14 place-items-center rounded-full border-[3px] border-[#1d1b19] bg-[#fbf5e9] shadow-[3px_3px_0_#1d1b19] transition-transform hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             style={{ color }}
           >
             {running ? (
@@ -210,14 +210,14 @@ function Panel({
           <button
             onClick={onSkip}
             aria-label={onBreak ? "Skip break" : "Skip to break"}
-            className="grid size-10 place-items-center rounded-full bg-white/20 transition-colors hover:bg-white/30"
+            className="grid size-10 place-items-center rounded-full border-[2.5px] border-[#1d1b19] bg-white/25 transition-colors hover:bg-white/40"
           >
             <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden><path d="M3 4.5v11a1 1 0 0 0 1.55.83L12 11.2V15.5a1 1 0 0 0 1 1h1.5a1 1 0 0 0 1-1v-11a1 1 0 0 0-1-1H13a1 1 0 0 0-1 1v4.3L4.55 3.67A1 1 0 0 0 3 4.5Z" /></svg>
           </button>
         </div>
 
-        <span className="mt-4 flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium">
-          <span className="size-1.5 rounded-full bg-sky-300" /> Deep Work
+        <span className="mt-4 flex items-center gap-1.5 rounded-full border-2 border-[#1d1b19] bg-white/20 px-3 py-1 text-[11px] font-semibold">
+          <span className="size-2 rounded-full border border-[#1d1b19] bg-[#f4bd3e]" /> Deep Work
         </span>
       </div>
     </div>
@@ -225,14 +225,14 @@ function Panel({
 }
 
 function Face({ style, time, progress, remaining }: { style: Style; time: string; progress: number; remaining: number }) {
-  const title = <span className="text-[15px] font-medium opacity-60">Draft chapter 3</span>;
+  const title = <span className="font-hand text-[22px] leading-none opacity-85">Draft chapter 3</span>;
   switch (style) {
     case "Ring":
       return (
         <div className="relative grid place-items-center">
           <ProgressRing progress={progress} size={210} stroke={9} />
           <div className="absolute flex flex-col items-center gap-2.5">
-            <RollingDigits text={time} className="font-rounded text-[52px] font-light leading-none" />
+            <RollingDigits text={time} className="font-display text-[54px] font-extrabold leading-none tracking-tight" />
             {title}
           </div>
         </div>
@@ -241,13 +241,13 @@ function Face({ style, time, progress, remaining }: { style: Style; time: string
       return (
         <div className="flex flex-col items-center gap-3">
           <Dial remaining={remaining} size={170} />
-          <RollingDigits text={time} className="font-rounded text-[34px] font-light leading-none" />
+          <RollingDigits text={time} className="font-display text-[36px] font-extrabold leading-none" />
         </div>
       );
     case "Digital":
       return (
         <div className="flex flex-col items-center gap-2">
-          <RollingDigits text={time} className="font-rounded text-[72px] font-extralight leading-none" />
+          <RollingDigits text={time} className="font-display text-[74px] font-extrabold leading-none tracking-tight" />
           {title}
         </div>
       );
@@ -255,7 +255,7 @@ function Face({ style, time, progress, remaining }: { style: Style; time: string
       const [minutes, seconds] = time.split(":");
       return (
         <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2 font-rounded text-[64px] font-medium leading-none">
+          <div className="flex items-center gap-2 font-display text-[64px] font-extrabold leading-none">
             <SplitFlap value={minutes} className="h-[100px] w-[100px]" />
             <SplitFlap value={seconds} className="h-[100px] w-[100px]" />
           </div>
