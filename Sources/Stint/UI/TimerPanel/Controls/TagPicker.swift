@@ -31,7 +31,7 @@ struct TagPicker: View {
             }
             .padding(.horizontal, 10 * scale)
             .padding(.vertical, 5 * scale)
-            .panelSurface(Capsule())
+            .panelSurface(Ink.capsule)
         }
         .menuStyle(.button)
         .buttonStyle(.plain)

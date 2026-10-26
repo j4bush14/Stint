@@ -45,8 +45,8 @@ extension UITests {
         func appearanceToggles() {
             let ui = paneWithPanel { AppearancePane() }
             let before = (ui.settings.coloredMenuBarIcon, ui.settings.titleInMenuBarIcon)
-            ui.toggle("toggle.coloredMenuBarIcon")
-            ui.toggle("toggle.titleInMenuBarIcon")
+            #expect(ui.toggle("toggle.coloredMenuBarIcon"))
+            #expect(ui.toggle("toggle.titleInMenuBarIcon"))
             #expect(ui.settings.coloredMenuBarIcon == !before.0)
             #expect(ui.settings.titleInMenuBarIcon == !before.1)
             #expect(ui.value("toggle.titleInMenuBarIcon") == (before.1 ? "off" : "on"))

@@ -22,7 +22,9 @@ struct PanelWash: View {
                 // Follows the panel's corners: rounded, or a capsule for the mini bar.
                 GeometryReader { proxy in
                     let radius = min(TimerPanelController.maxCornerRadius, proxy.size.height / 2)
-                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    // A capsule's stroke gets bumps at its ends with continuous corners.
+                    let isCapsule = radius >= proxy.size.height / 2
+                    RoundedRectangle(cornerRadius: radius, style: isCapsule ? .circular : .continuous)
                         .strokeBorder(Ink.line, lineWidth: 3)
                 }
             }

@@ -46,35 +46,31 @@ struct AppearancePane: View {
             }
 
             Section {
-                Picker("Panel", selection: $s.panelStyle) {
+                Picker("Style", selection: $s.panelStyle) {
                     ForEach(PanelStyle.allCases) { Text($0.label).tag($0) }
                 }
                 .pickerStyle(.segmented)
                 .testTarget("appearance.panelStyle", value: s.panelStyle.rawValue)
-            } header: {
-                Text("Style")
-            } footer: {
-                footnote("Glass is Liquid Glass tinted with your theme. Ink is flat color with ink outlines, like the Stint website.")
-            }
-
-            Section {
-                LabeledContent("Tint") {
-                    Slider(value: $s.tintStrength, in: 0...1) {
-                        Text("Tint")
-                    } minimumValueLabel: {
-                        Text("Clear")
-                    } maximumValueLabel: {
-                        Text("Strong")
+                if s.panelStyle == .glass { // Ink is solid color, with nothing to tint
+                    LabeledContent("Tint") {
+                        Slider(value: $s.tintStrength, in: 0...1) {
+                            Text("Tint")
+                        } minimumValueLabel: {
+                            Text("Clear")
+                        } maximumValueLabel: {
+                            Text("Strong")
+                        }
+                        .labelsHidden() // the row already says "Tint"
+                        .frame(width: 260)
                     }
-                    .labelsHidden() // the row already says "Tint"
-                    .frame(width: 260)
                 }
-                .disabled(s.panelStyle == .ink) // Ink is solid color
                 ThemePreview()
             } header: {
-                Text("Glass")
+                Text("Panel")
             } footer: {
-                footnote("How much color sits on the timer's glass. Less tint lets more of the desktop show through.")
+                footnote(s.panelStyle == .ink
+                         ? "Ink is flat color with ink outlines, like the Stint website."
+                         : "How much color sits on the timer's glass. Less tint lets more of the desktop show through.")
             }
 
             Section("Mode") {
@@ -199,7 +195,7 @@ struct ThemePreview: View {
         }
         .foregroundStyle(.white)
         .padding(14)
-        .background(theme.panelWash(for: phase), in: .rect(cornerRadius: 22))
-        .glassEffect(s.palette == .wallpaper ? .clear : .regular, in: .rect(cornerRadius: 22))
+        .panelCard(theme.panelWash(for: phase), cornerRadius: 22, ink: theme.isInk,
+                   glass: s.palette == .wallpaper ? .clear : .regular, shadow: 4)
     }
 }

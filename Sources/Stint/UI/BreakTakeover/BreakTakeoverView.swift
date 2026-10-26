@@ -25,16 +25,16 @@ struct BreakTakeoverView: View {
                         Button(timer.isRunning ? "Pause" : "Resume", systemImage: timer.isRunning ? "pause.fill" : "play.fill") {
                             timer.toggle()
                         }
-                        .buttonStyle(.glassProminent)
+                        .takeoverButton(prominent: true, ink: theme.isInk)
                         .tint(.white.opacity(0.92))
                         .foregroundStyle(theme.color(for: timer.phase))
                         Button("End Break", systemImage: "forward.end.fill") {
                             timer.skip()
                             actions.closeBreakTakeover()
                         }
-                        .buttonStyle(.glass)
+                        .takeoverButton(prominent: false, ink: theme.isInk)
                         Button("Hide", systemImage: "xmark") { actions.closeBreakTakeover() }
-                            .buttonStyle(.glass)
+                            .takeoverButton(prominent: false, ink: theme.isInk)
                     }
                     .controlSize(.extraLarge)
                 }
@@ -43,8 +43,21 @@ struct BreakTakeoverView: View {
             .foregroundStyle(.white)
             .padding(.horizontal, 70)
             .padding(.vertical, 50)
-            .background(theme.panelWash(for: timer.phase), in: .rect(cornerRadius: 44))
-            .glassEffect(.regular, in: .rect(cornerRadius: 44))
+            .panelCard(theme.panelWash(for: timer.phase), cornerRadius: 44, ink: theme.isInk, shadow: 8)
+        }
+    }
+}
+
+private extension View {
+    /// The break screen's buttons: system Liquid Glass, or ink capsules in the Ink style.
+    @ViewBuilder
+    func takeoverButton(prominent: Bool, ink: Bool) -> some View {
+        if ink {
+            buttonStyle(InkCapsuleButtonStyle(prominent: prominent))
+        } else if prominent {
+            buttonStyle(.glassProminent)
+        } else {
+            buttonStyle(.glass)
         }
     }
 }
