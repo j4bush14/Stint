@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// Play/pause, flanked by reset and skip. The buttons share a `GlassEffectContainer`, so
-/// reset and skip morph out of the play button when they appear.
+/// reset and skip morph out of the play button when they appear. The Ink style has no glass
+/// to morph, so it lays them out on their own.
 struct TransportControls: View {
     @EnvironmentObject private var theme: ThemeModel
     let scale: CGFloat
@@ -11,23 +12,30 @@ struct TransportControls: View {
     @EnvironmentObject private var timer: FocusTimer
     @EnvironmentObject private var wallpaper: WallpaperColors // play icon uses its accent
     @Namespace private var glassSpace
+    @Environment(\.panelInk) private var ink
 
     var body: some View {
-        GlassEffectContainer(spacing: 18 * scale) {
-            HStack(spacing: 14 * scale) {
-                if timer.canReset && !playOnly {
-                    secondary("arrow.counterclockwise", help: "Reset to \(TimeFormat.clock(timer.duration(of: timer.phase)))",
-                              label: "Reset") { timer.stop() }
-                        .glassEffectID("reset", in: glassSpace)
-                        .testTarget("transport.reset")
-                }
-                playPause
-                if timer.hasStarted && !playOnly {
-                    secondary("forward.end.fill", help: timer.phase == .focus ? "Skip to break" : "Skip break",
-                              label: "Skip") { timer.skip() }
-                        .glassEffectID("skip", in: glassSpace)
-                        .testTarget("transport.skip")
-                }
+        if ink {
+            buttons
+        } else {
+            GlassEffectContainer(spacing: 18 * scale) { buttons }
+        }
+    }
+
+    private var buttons: some View {
+        HStack(spacing: 14 * scale) {
+            if timer.canReset && !playOnly {
+                secondary("arrow.counterclockwise", help: "Reset to \(TimeFormat.clock(timer.duration(of: timer.phase)))",
+                          label: "Reset") { timer.stop() }
+                    .glassEffectID("reset", in: glassSpace)
+                    .testTarget("transport.reset")
+            }
+            playPause
+            if timer.hasStarted && !playOnly {
+                secondary("forward.end.fill", help: timer.phase == .focus ? "Skip to break" : "Skip break",
+                          label: "Skip") { timer.skip() }
+                    .glassEffectID("skip", in: glassSpace)
+                    .testTarget("transport.skip")
             }
         }
     }

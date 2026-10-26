@@ -73,7 +73,7 @@ struct PanelMenuButton: View {
             Image(systemName: "ellipsis")
                 .font(.system(size: 12 * scale, weight: .semibold))
                 .frame(width: panelButtonSize * scale, height: panelButtonSize * scale)
-                .glassEffect(.regular.interactive(), in: .circle)
+                .panelSurface(Circle())
                 .padding(4 * scale) // a slightly larger target than the circle you see
                 .contentShape(.circle)
                 .padding(-4 * scale)

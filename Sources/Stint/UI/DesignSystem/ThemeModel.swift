@@ -38,6 +38,9 @@ final class ThemeModel: ObservableObject {
     /// The app-wide accent (the focus color of the current theme).
     var accent: Color { color(for: .focus) }
 
+    /// True when the panel is flat color with ink outlines instead of Liquid Glass.
+    var isInk: Bool { settings.panelStyle == .ink }
+
     /// The panel uses clear glass for the Wallpaper theme so what's behind it shows through.
     var glassStyle: NSGlassEffectView.Style {
         settings.palette == .wallpaper ? .clear : .regular
@@ -47,6 +50,11 @@ final class ThemeModel: ObservableObject {
     /// and pausing never shift the background; `tintStrength` sets how much of the glass
     /// shows through.
     func washColors(for phase: Phase) -> (top: Color, bottom: Color) {
+        // Ink: the theme's color, solid, so none of the glass shows.
+        if isInk {
+            let color = color(for: phase)
+            return (color, color)
+        }
         let strength = settings.tintStrength
         guard settings.palette == .wallpaper else {
             let color = color(for: phase).opacity(0.25 + 0.6 * strength)

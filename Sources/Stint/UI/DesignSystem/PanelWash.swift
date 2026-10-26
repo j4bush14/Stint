@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The panel's color wash. Built from two solid colors (the bottom one, with the top one
 /// fading down over it) so a change of color, like a new wallpaper sample or the switch to a
-/// break, fades smoothly instead of jumping.
+/// break, fades smoothly instead of jumping. The Ink style adds an ink outline around the panel.
 struct PanelWash: View {
     @EnvironmentObject private var theme: ThemeModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -17,6 +17,16 @@ struct PanelWash: View {
         }
         .animation(reduceMotion ? nil : .smooth(duration: 0.6), value: colors.top)
         .animation(reduceMotion ? nil : .smooth(duration: 0.6), value: colors.bottom)
+        .overlay {
+            if theme.isInk {
+                // Follows the panel's corners: rounded, or a capsule for the mini bar.
+                GeometryReader { proxy in
+                    let radius = min(TimerPanelController.maxCornerRadius, proxy.size.height / 2)
+                    RoundedRectangle(cornerRadius: radius, style: .continuous)
+                        .strokeBorder(Ink.line, lineWidth: 3)
+                }
+            }
+        }
         .allowsHitTesting(false)
     }
 }

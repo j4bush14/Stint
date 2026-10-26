@@ -70,6 +70,7 @@ struct TimerPanelView: View {
         .gesture(WindowDragGesture())
         .allowsWindowActivationEvents(true)
         .background(PanelWash(phase: timer.phase))
+        .environment(\.panelInk, theme.isInk)
         .foregroundStyle(.white)
         .onHover { isHovering = $0 }
         .animation(.smooth(duration: 0.3), value: timer.hasStarted)

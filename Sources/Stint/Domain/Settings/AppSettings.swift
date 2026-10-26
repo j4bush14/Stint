@@ -61,6 +61,7 @@ final class AppSettings: PreferenceStore {
     // Appearance
     @Pref("look.appearance") var appearance: Appearance = .system
     @Pref("look.palette") var palette: Palette = .lagoon
+    @Pref("look.panelStyle") var panelStyle: PanelStyle = .glass
     @Pref("look.customColor") var customColorHex = "#7A5AF8"
     /// 0 = mostly clear glass, 1 = strongly colored.
     @Pref("look.tintStrength") var tintStrength = 0.5

@@ -31,7 +31,7 @@ struct TagPicker: View {
             }
             .padding(.horizontal, 10 * scale)
             .padding(.vertical, 5 * scale)
-            .glassEffect(.regular.interactive(), in: .capsule)
+            .panelSurface(Capsule())
         }
         .menuStyle(.button)
         .buttonStyle(.plain)

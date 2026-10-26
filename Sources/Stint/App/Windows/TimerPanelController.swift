@@ -17,7 +17,7 @@ final class TimerPanelController: NSObject, NSWindowDelegate {
     private var cancellables = Set<AnyCancellable>()
 
     private static let autosaveName = "TimerPanel"
-    private static let maxCornerRadius: CGFloat = 34
+    static let maxCornerRadius: CGFloat = 34
 
     init(app: AppEnvironment, anchor: @escaping () -> NSRect?) {
         self.app = app

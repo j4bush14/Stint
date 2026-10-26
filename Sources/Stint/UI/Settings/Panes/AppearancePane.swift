@@ -46,6 +46,18 @@ struct AppearancePane: View {
             }
 
             Section {
+                Picker("Panel", selection: $s.panelStyle) {
+                    ForEach(PanelStyle.allCases) { Text($0.label).tag($0) }
+                }
+                .pickerStyle(.segmented)
+                .testTarget("appearance.panelStyle", value: s.panelStyle.rawValue)
+            } header: {
+                Text("Style")
+            } footer: {
+                footnote("Glass is Liquid Glass tinted with your theme. Ink is flat color with ink outlines, like the Stint website.")
+            }
+
+            Section {
                 LabeledContent("Tint") {
                     Slider(value: $s.tintStrength, in: 0...1) {
                         Text("Tint")
@@ -57,6 +69,7 @@ struct AppearancePane: View {
                     .labelsHidden() // the row already says "Tint"
                     .frame(width: 260)
                 }
+                .disabled(s.panelStyle == .ink) // Ink is solid color
                 ThemePreview()
             } header: {
                 Text("Glass")

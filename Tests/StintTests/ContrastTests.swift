@@ -88,3 +88,19 @@ struct ProgressMotionTests {
         #expect(Gliding<EmptyView>.motion(from: 0.2, to: 0.6) == .smooth(duration: 0.55))
     }
 }
+
+extension ContrastTests {
+    @Test("The Ink panel is the theme's color, solid; Glass keeps its see-through wash")
+    func inkWash() {
+        let env = TestEnvironment()
+        let theme = ThemeModel(settings: env.settings, wallpaper: WallpaperColors(settings: env.settings))
+        #expect(theme.washColors(for: .focus).top != theme.color(for: .focus))
+
+        env.settings.panelStyle = .ink
+        for phase in [Phase.focus, .shortBreak] {
+            let wash = theme.washColors(for: phase)
+            #expect(wash.top == theme.color(for: phase))
+            #expect(wash.bottom == theme.color(for: phase))
+        }
+    }
+}

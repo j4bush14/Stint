@@ -30,6 +30,14 @@ enum Palette: String, CaseIterable, Identifiable {
     var name: String { rawValue.capitalized }
 }
 
+/// What the timer panel is made of: Liquid Glass, or flat color with ink outlines like the
+/// website's clip art.
+enum PanelStyle: String, CaseIterable, Identifiable {
+    case glass, ink
+    var id: String { rawValue }
+    var label: String { rawValue.capitalized }
+}
+
 /// How the timer panel shows the time.
 enum ClockStyle: String, CaseIterable, Identifiable {
     case ring, digital, dial, flip

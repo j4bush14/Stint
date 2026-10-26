@@ -32,7 +32,7 @@ struct PanelHideButton: View {
             Image(systemName: "xmark")
                 .font(.system(size: 10 * scale, weight: .bold))
                 .frame(width: panelButtonSize * scale, height: panelButtonSize * scale)
-                .glassEffect(.regular.interactive(), in: .circle) // matches ⋯ beside it
+                .panelSurface(Circle()) // matches ⋯ beside it
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Hide")
