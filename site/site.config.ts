@@ -8,7 +8,7 @@ export const site = {
   get downloadUrl() {
     return `${this.repositoryUrl}/releases/latest`;
   },
-  version: "2.1.0",
+  version: "2.1.1",
   requirements: "macOS 27 · Apple silicon",
   /** Releases aren't notarized, so macOS asks once before the first launch. */
   firstLaunch: "First launch: open System Settings › Privacy & Security and click Open Anyway.",
