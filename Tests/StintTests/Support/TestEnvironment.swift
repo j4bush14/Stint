@@ -17,12 +17,10 @@ final class TestEnvironment {
     let clock = TestClock()
     let directory: URL
 
-    private let settingsSuite = "stint-tests-settings-\(UUID().uuidString)"
-    private let stateSuite = "stint-tests-state-\(UUID().uuidString)"
-
     init() {
-        settings = AppSettings(defaults: UserDefaults(suiteName: settingsSuite)!)
-        state = UserDefaults(suiteName: stateSuite)!
+        // In memory: see `MemoryDefaults` for why not a throwaway suite on disk.
+        settings = AppSettings(defaults: MemoryDefaults())
+        state = MemoryDefaults()
         directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("stint-tests-\(UUID().uuidString)", isDirectory: true)
         store = SessionStore(directory: directory)
@@ -47,8 +45,6 @@ final class TestEnvironment {
     }
 
     deinit {
-        UserDefaults().removePersistentDomain(forName: settingsSuite)
-        UserDefaults().removePersistentDomain(forName: stateSuite)
         try? FileManager.default.removeItem(at: directory)
     }
 }
