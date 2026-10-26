@@ -193,6 +193,32 @@ struct FocusTimerTests {
         #expect(timer.completedFocus == 0)
     }
 
+    @Test("Restarting at a focus session goes there from any point, ready to start", arguments: 0..<4)
+    func restartFocus(index: Int) {
+        let timer = env.makeTimer()
+        timer.skip(); timer.skip(); timer.skip()  // → short break after focus 2
+        timer.start()
+        env.run(timer, for: 30)
+        #expect(timer.restartFocus(at: index))
+        #expect(timer.phase == .focus)
+        #expect(timer.completedFocus == index)
+        #expect(!timer.isRunning)
+        #expect(timer.remaining == timer.duration(of: .focus))
+    }
+
+    @Test("Restarting at a focus session outside the cycle, or under Lock-In, does nothing")
+    func restartFocusRefused() {
+        let timer = env.makeTimer()
+        #expect(!timer.restartFocus(at: 4))
+        #expect(!timer.restartFocus(at: -1))
+        timer.skip(); timer.skip()  // → focus 2
+        env.settings.lockIn = true
+        timer.start()
+        #expect(!timer.restartFocus(at: 0))
+        #expect(timer.completedFocus == 1)
+        #expect(timer.isRunning)
+    }
+
     // MARK: Lock-In
 
     @Test("Lock-In blocks pause, skip, stop and rewind while focusing")

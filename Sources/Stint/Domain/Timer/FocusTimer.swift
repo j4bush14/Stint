@@ -265,9 +265,16 @@ final class FocusTimer: ObservableObject {
     /// Starts over at the first focus session of a new cycle.
     @discardableResult
     func resetCycle() -> Bool {
-        guard !isLocked else { return false }
+        restartFocus(at: 0)
+    }
+
+    /// Goes to focus session `index` of the cycle (0 is the first), from any point in it,
+    /// ready to start. Whatever was under way is recorded as unfinished.
+    @discardableResult
+    func restartFocus(at index: Int) -> Bool {
+        guard !isLocked, (0..<cycle).contains(index) else { return false }
         recordCurrentSession(completed: false)
-        completedFocus = 0
+        completedFocus = index
         setPhase(.focus)
         return true
     }

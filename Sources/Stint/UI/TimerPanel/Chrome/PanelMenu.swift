@@ -17,6 +17,7 @@ enum PanelMenu {
         let newCycle = ClosureMenuItem("Start New Cycle", symbol: "arrow.trianglehead.2.clockwise") { timer.resetCycle() }
         newCycle.isEnabled = !timer.isLocked
         menu.addItem(newCycle)
+        menu.addItem(restartFocusItem(timer: timer))
         menu.addItem(.separator())
         menu.addItem(clockStyleItem(settings: settings))
         menu.addItem(panelStyleItem(settings: settings))
@@ -41,6 +42,22 @@ enum PanelMenu {
                 withAnimation(.smooth) { settings.clockStyle = style }
             }
             choice.state = settings.clockStyle == style ? .on : .off
+            submenu.addItem(choice)
+        }
+        item.submenu = submenu
+        return item
+    }
+
+    /// "Restart at Focus ▸ Focus 1 of 4 …", one item per focus session in the cycle, with the
+    /// one under way checked. The menu bar's menu offers the same submenu.
+    static func restartFocusItem(timer: FocusTimer) -> NSMenuItem {
+        let item = NSMenuItem(title: "Restart at Focus", action: nil, keyEquivalent: "")
+        item.image = NSImage(systemSymbolName: "arrow.uturn.backward", accessibilityDescription: nil)
+        item.isEnabled = !timer.isLocked
+        let submenu = NSMenu()
+        for index in 0..<timer.cycle {
+            let choice = ClosureMenuItem("Focus \(index + 1) of \(timer.cycle)") { timer.restartFocus(at: index) }
+            choice.state = timer.phase == .focus && timer.completedFocus == index ? .on : .off
             submenu.addItem(choice)
         }
         item.submenu = submenu

@@ -49,6 +49,7 @@ enum StatusMenu {
             newCycle.isEnabled = !locked
             menu.addItem(newCycle)
         }
+        menu.addItem(PanelMenu.restartFocusItem(timer: timer))
 
         menu.addItem(tagItem(timer: timer, store: store, enabled: !locked))
         menu.addItem(PanelMenu.clockStyleItem(settings: settings))

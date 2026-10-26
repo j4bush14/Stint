@@ -22,7 +22,7 @@ extension UITests {
         func lists() {
             let ui = header()
             let titles = ui.chooseMenuItem("panel.menu", path: [])
-            #expect(titles == ["Rename Session…", "Start New Cycle", "Clock Style", "Panel Style", "Window Size",
+            #expect(titles == ["Rename Session…", "Start New Cycle", "Restart at Focus", "Clock Style", "Panel Style", "Window Size",
                                "History", "Settings…", "Hide Window", "Quit Stint"])
         }
 
@@ -60,6 +60,21 @@ extension UITests {
             let ui = header { renamed.set = true }
             ui.chooseMenuItem("panel.menu", path: ["Rename Session…"])
             #expect(renamed.set)
+        }
+
+        @Test("Restart at Focus jumps to any focus session in the cycle, with the current one checked")
+        func restartAtFocus() throws {
+            let ui = header()
+            ui.chooseMenuItem("panel.menu", path: ["Restart at Focus", "Focus 3 of 4"])
+            #expect(ui.timer.completedFocus == 2)
+            #expect(ui.timer.phase == .focus)
+            #expect(ui.value("panel.phase") == "focus 3/4")
+
+            ui.chooseMenuItem("panel.menu", path: ["Restart at Focus", "Focus 1 of 4"])
+            #expect(ui.value("panel.phase") == "focus 1/4")
+            let steps = try #require(ui.lastPoppedMenu?.items.first { $0.title == "Restart at Focus" }?.submenu)
+            #expect(steps.items.map(\.title) == ["Focus 1 of 4", "Focus 2 of 4", "Focus 3 of 4", "Focus 4 of 4"])
+            #expect(steps.items.filter { $0.state == .on }.map(\.title) == ["Focus 3 of 4"]) // as it was when opened
         }
 
         @Test("Start New Cycle goes back to the first focus session")
