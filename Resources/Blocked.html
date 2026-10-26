@@ -54,7 +54,7 @@
     /* No fill mode: if animations don't run, the content still shows. */
     animation: arrive 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .icon { display: block; width: 76px; height: 76px; margin: 0 auto 28px; filter: drop-shadow(0 10px 24px rgb(33 110 189 / 0.35)); }
+  .icon { display: block; width: 76px; height: 76px; margin: 0 auto 28px; filter: drop-shadow(0 10px 24px rgb(35 80 194 / 0.35)); }
   .icon .ring { transform-origin: 32px 32px; animation: breathe 5s ease-in-out infinite; }
   .eyebrow {
     display: flex;
@@ -93,18 +93,18 @@
   <div class="glow focus"></div>
   <div class="glow rest"></div>
   <main>
-    <!-- Stint's icon: a ring on the teal-to-blue tile. -->
+    <!-- Stint's icon, Lagoon Ring: a white progress ring on a teal-to-blue tile. -->
     <svg class="icon" viewBox="0 0 64 64" aria-hidden="true">
       <defs>
         <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#1e98a3"/>
-          <stop offset="1" stop-color="#2353c0"/>
+          <stop offset="0" stop-color="#22a6b0"/>
+          <stop offset="1" stop-color="#2350c2"/>
         </linearGradient>
       </defs>
-      <rect width="64" height="64" rx="15" fill="url(#tile)"/>
-      <g class="ring" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round">
-        <circle cx="32" cy="32" r="17" stroke-opacity="0.35"/>
-        <path d="M32 15a17 17 0 1 1-16.2 22"/>
+      <rect width="64" height="64" rx="14.4" fill="url(#tile)"/>
+      <g class="ring" fill="none" stroke="#fff" stroke-width="5.44" stroke-linecap="round">
+        <circle cx="32" cy="32" r="19.42" stroke-opacity="0.25"/>
+        <path d="M32 12.58A19.42 19.42 0 1 1 13.75 25.36"/>
       </g>
     </svg>
 
